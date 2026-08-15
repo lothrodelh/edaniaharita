@@ -16,7 +16,7 @@
   #map { position:absolute; inset:0; cursor:grab; touch-action:none; }
   #map.drag { cursor:grabbing; }
   .panel { position:absolute; background:var(--panel); border:1px solid var(--line); border-radius:10px; backdrop-filter:blur(8px); }
-  #ui { top:12px; left:12px; width:262px; padding:12px 14px; }
+  #ui { top:52px; left:12px; width:262px; padding:12px 14px; }
   #ui h1 { margin:0 0 8px; font-size:15px; letter-spacing:-.2px; }
   #ui-head { cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between; gap:8px; }
   #ui-caret { flex:none; color:var(--accent); font-size:12px; font-weight:600; opacity:.85; }
@@ -49,11 +49,12 @@
   button { flex:1; background:#21262d; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px 8px; cursor:pointer; font-size:12px; font-family:inherit; }
   button:hover { background:#30363d; }
   button.on { background:#2d5a3d; border-color:#3d7a52; }
-  #topbar { position:absolute; top:12px; right:12px; z-index:4; display:flex; gap:6px; }
-  #topbar button { flex:none; width:auto; padding:7px 12px; background:#161b22e6; backdrop-filter:blur(8px); border-radius:8px; }
-  #topbar a.tool { flex:none; display:flex; align-items:center; padding:7px 11px; background:#161b22e6; backdrop-filter:blur(8px); border:1px solid var(--line); border-radius:8px; color:var(--fg); text-decoration:none; font-size:12px; }
-  #topbar a.tool:hover { background:#30363d; }
-  #topbar button.lang.on { background:#2d5a3d; border-color:#3d7a52; font-weight:700; }
+  #nav { position:fixed; top:0; left:0; right:0; z-index:8; display:flex; align-items:center; gap:4px; padding:7px 14px; background:#1e1710f2; backdrop-filter:blur(8px); border-bottom:1px solid #55421f; box-shadow:0 2px 14px #000a; flex-wrap:wrap; }
+  #nav a { color:#d9cbaa; text-decoration:none; padding:5px 10px; border-radius:7px; font-size:13px; white-space:nowrap; }
+  #nav a:hover { background:#ffffff10; color:#f0e2ba; }
+  #nav a.act { color:#eecb72; font-weight:700; text-shadow:0 0 12px #d9b45f55; }
+  #nav button { flex:none; width:auto; padding:5px 11px; border-radius:6px; font-size:12px; }
+  #nav button.lang.on { background:#2d5a3d; border-color:#3d7a52; font-weight:700; }
   #credit { position:absolute; right:12px; bottom:10px; z-index:3; font-size:10.5px; color:#9aa6b2; text-shadow:0 1px 3px #000c; pointer-events:none; }
   #tip { position:absolute; pointer-events:none; padding:6px 9px; font-size:12px; background:#0d1117f2; border:1px solid var(--line); border-radius:7px; display:none; white-space:nowrap; z-index:5; }
   #tip .k, .k { color:var(--dim); font-size:11px; }
@@ -80,17 +81,39 @@
   #lb #lb-title { position:absolute; top:16px; left:50%; transform:translateX(-50%); max-width:80vw; text-align:center; color:#fff; font-size:15px; font-weight:700; text-shadow:0 1px 4px #000c; letter-spacing:-.2px; }
   #lb #lb-credit { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); color:#b9c2cc; font-size:11.5px; text-shadow:0 1px 3px #000c; }
 </style>
+<style id="bdo-theme">
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap');
+:root { --panel:#1e1710ee; --line:#443519; --dim:#a08e6f; --accent:#d9b45f; --fg:#e8dcc4; }
+#ui h1, #ui-title { font-family:"Cinzel", Georgia, serif; color:#e2c069; letter-spacing:.4px; }
+.panel { box-shadow:0 3px 14px #0008, inset 0 1px 0 #ffffff09; border-color:#443519; }
+#ui::before { content:""; position:absolute; left:10px; right:10px; top:0; height:1px;
+  background:linear-gradient(90deg, transparent, #c9a24f66, transparent); }
+button, #nav button { background:linear-gradient(180deg,#3a2d17,#281f11); border:1px solid #5c4823; color:#ecdcae; }
+button:hover, #nav button:hover { background:linear-gradient(180deg,#4a3a1e,#332816); border-color:#7a6030; }
+button.on, #nav button.lang.on { background:linear-gradient(180deg,#5c4720,#3d2f14); border-color:#a5813c; color:#ffe9a8; }
+#nav-x { background:#1e1710ee; border-color:#443519; color:#ecdcae; }
+#nav-x:hover { background:#332816; border-color:#7a6030; }
+#q { background:#0f0b06; border-color:#3d3120; color:#e8dcc4; }
+#q:focus { border-color:#8a6c33; }
+.layer:hover, #hits div:hover { background:#d9b45f14; }
+.layer input, input[type=checkbox] { accent-color:#d9b45f; }
+#prog .prog-coin, #prog { border-color:#3d3120; }
+#sel, #tip, #toast { border-color:#443519; }
+</style>
+
 <canvas id="map"></canvas>
-<div id="topbar">
-  <a class="tool" href="enhancement.html" id="tl-enh" title="Geliştirme Hesaplayıcı">⚒</a>
-  <a class="tool" href="fs-cost.html" id="tl-fs" title="FS Maliyeti">📈</a>
-  <a class="tool" href="carrack.html" title="Carrack">⛵</a>
-  <a class="tool" href="lifeskill-buffs.html" id="tl-ls" title="Yaşam Becerisi Bufları">🧪</a>
-  <a class="tool" href="edania.html" title="Edania Rehberi">🏛</a>
+<nav id="nav">
+  <a href="index.html" class="act">🗺 <span id="nv-map">Harita</span></a>
+  <a href="enhancement.html">⚒ <span id="nv-enh">Geliştirme</span></a>
+  <a href="fs-cost.html">📈 <span id="nv-fs">FS Maliyeti</span></a>
+  <a href="carrack.html">⛵ Carrack</a>
+  <a href="lifeskill-buffs.html">🧪 <span id="nv-ls">Yaşam Becerisi</span></a>
+  <a href="edania.html">🏛 Edania</a>
+  <span style="flex:1"></span>
   <button class="lang" id="lang-tr">TR</button>
   <button class="lang" id="lang-en">EN</button>
   <button id="btn-fs">⛶</button>
-</div>
+</nav>
 <div id="ui" class="panel collapsed">
   <h1 id="ui-head"><span id="ui-title">Edania — Tachyon Haritası</span> <span id="ui-caret">Genişlet</span></h1>
   <input id="q" placeholder="" autocomplete="off">
@@ -846,6 +869,11 @@ function progress(){
 // ── Statik arayüz metinleri / Static UI text
 function applyLang(){
   const t=T();
+  const NV=lang==='en'?{m:'Map',e:'Enhancement',f:'FS Cost',l:'Lifeskill'}:{m:'Harita',e:'Geliştirme',f:'FS Maliyeti',l:'Yaşam Becerisi'};
+  document.getElementById('nv-map').textContent=NV.m;
+  document.getElementById('nv-enh').textContent=NV.e;
+  document.getElementById('nv-fs').textContent=NV.f;
+  document.getElementById('nv-ls').textContent=NV.l;
   document.title=t.title;
   document.documentElement.lang=lang;
   document.getElementById('ui-title').textContent=t.h1;
