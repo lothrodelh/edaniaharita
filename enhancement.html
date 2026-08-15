@@ -114,149 +114,250 @@
   <a href="https://api.arsha.io" target="_blank" rel="noopener">arsha.io</a> · © Pearl Abyss
 </footer>
 <script>
-// ── Oyun sabitleri / Game constants (oyun içi resmi değerler)
-// levels: [ad, taban şans %, pity, cron/tık, malzeme adedi, fail FS kazanımı, malzeme anahtarı]
-const ITEMS={
-kharazad:{tr:"Kharazad Aksesuarları",en:"Kharazad Accessories",
-  mats:{essence:{tr:"Şafak Özü (Essence of Dawn)",en:"Essence of Dawn",id:820979,def:40000000},
-        dawnbs:{tr:"Şafak Kara Taşı (Dawn Black Stone)",en:"Dawn Black Stone",id:820984,def:600000000}},
-  levels:[["PRI",16.3,3,0,1,1,"essence"],["DUO",7.3,5,120,2,1,"essence"],["TRI",4.57,7,280,3,1,"essence"],
-          ["TET",2.89,8,540,4,1,"essence"],["PEN",1.91,10,840,6,1,"essence"],["HEX",1.29,12,1090,8,1,"essence"],
-          ["SEP",0.88,15,1480,10,1,"essence"],["OCT",0.57,20,1880,12,1,"essence"],["NOV",0.32,25,2850,15,1,"essence"],
-          ["DEC",0.172,30,3650,1,1,"dawnbs"]]},
-sovereign:{tr:"Sovereign Silahları",en:"Sovereign Weapons",
-  mats:{origin:{tr:"Karanlık Açlığın Kökeni (Origin of Dark Hunger)",en:"Origin of Dark Hunger",id:820934,def:1080000000}},
-  levels:[["PRI",8.55,3,0,1,2,"origin"],["DUO",4.12,5,320,1,3,"origin"],["TRI",2,10,560,1,4,"origin"],
-          ["TET",0.91,20,780,1,5,"origin"],["PEN",0.469,30,970,1,6,"origin"],["HEX",0.273,35,1350,1,7,"origin"],
-          ["SEP",0.16,50,1550,1,8,"origin"],["OCT",0.1075,75,2250,1,9,"origin"],["NOV",0.0485,165,2760,1,10,"origin"],
-          ["DEC",0.0242,330,3920,1,11,"origin"]]},
-edana:{tr:"Edana Zırhları (Edania)",en:"Edana Armor (Edania)",
-  mats:{stone:{tr:"Edania Zırh Taşı (Edania Armor Stone)",en:"Edania Armor Stone",id:821249,def:10000000}},
-  levels:[["PRI",5.3,2,0,1,2,"stone"],["DUO",2.95,3,890,1,3,"stone"],["TRI",1.65,5,910,1,4,"stone"],
-          ["TET",1.1,8,940,1,5,"stone"],["PEN",0.5945,11,970,1,6,"stone"],["HEX",0.238,22,1320,1,7,"stone"],
-          ["SEP",0.19,25,1760,1,8,"stone"],["OCT",0.156,30,2250,1,9,"stone"],["NOV",0.0705,65,2760,1,10,"stone"],
-          ["DEC",0.0485,85,3280,1,11,"stone"]]}
+// ── Oyun sabitleri / Game constants — oyun içi resmi değerler (bkz. dosya başındaki kaynaklar)
+// Seviye satırı / level row: [ad, taban %, pity, cron, malzemeKey, adet]
+const MAT={
+ essence:{tr:"Şafak Özü (Essence of Dawn)",en:"Essence of Dawn",id:820979,def:200000000},
+ dawnbs:{tr:"Şafak Kara Taşı (Dawn Black Stone)",en:"Dawn Black Stone",id:820984,def:2000000000},
+ origin:{tr:"Karanlık Açlığın Kökeni (Origin of Dark Hunger)",en:"Origin of Dark Hunger",id:820934,def:1080000000},
+ edstone:{tr:"Edania Zırh Taşı (Edania Armor Stone)",en:"Edania Armor Stone",id:821249,def:10000000000},
+ ekmat:{tr:"Ekleta Malzemesi",en:"Ekleta Material",id:821425,def:500000000},
+ apmat:{tr:"Apeiron Malzemesi",en:"Apeiron Material",id:11733,def:500000000},
+ phmat:{tr:"Phalasi Malzemesi (×50)",en:"Phalasi Material (×50)",id:756001,def:500000},
+ gem:{tr:"Yoğun Büyülü Kara Cevher (Conc. Black Gem)",en:"Concentrated Magical Black Gem",id:4987,def:12000000},
+ bgem:{tr:"Kara Cevher (Black Gem)",en:"Black Gem",id:4986,def:1500000},
+ bs:{tr:"Kara Taş (Black Stone)",en:"Black Stone",id:16001,def:187000},
+ conc:{tr:"Yoğun Büyülü Kara Taş (Concentrated)",en:"Concentrated Magical Black Stone",id:16004,def:3500000},
+ tuv1:{tr:"Zaman Dolu Kara Taş (Time-filled)",en:"Time-filled Black Stone",id:0,def:0},
+ tuv2:{tr:"Arıtılmış Büyülü Kara Taş (Refined)",en:"Refined Magical Black Stone",id:0,def:400000},
+ dupe:{tr:"Baz item (kopya) fiyatı",en:"Base item (duplicate) price",id:0,def:0}
 };
-const DEF_FS=[120,165,220,250,275,300,310,310,310,310];
+// sys: x = yeni X-sistemi (şans = taban×(1+FS/10)) | leg = eski FS eğrisi | fix = FS etkisiz
+// drop: cron'la bile başarısızlıkta seviye düşer (yeniden tırmanma maliyeti hesaba katılır)
+// cronEdit: cron adedi item'a göre değişir, elle düzenlenebilir
+const ITEMS={
+kharazad:{tr:"Kharazad Aksesuarları",en:"Kharazad Accessories",sys:'x',
+ levels:[["PRI",16.3,3,0,"essence",1],["DUO",7.3,5,120,"essence",2],["TRI",4.57,7,280,"essence",3],["TET",2.89,8,540,"essence",4],["PEN",1.91,10,840,"essence",6],["HEX",1.29,12,1090,"essence",8],["SEP",0.88,15,1480,"essence",10],["OCT",0.57,20,1880,"essence",12],["NOV",0.32,25,2850,"essence",15],["DEC",0.172,30,3650,"dawnbs",1]]},
+sovereign:{tr:"Sovereign Silahları",en:"Sovereign Weapons",sys:'x',
+ levels:[["PRI",8.55,3,0,"origin",1],["DUO",4.12,5,320,"origin",1],["TRI",2,10,560,"origin",1],["TET",0.91,20,780,"origin",1],["PEN",0.469,30,970,"origin",1],["HEX",0.273,35,1350,"origin",1],["SEP",0.16,50,1550,"origin",1],["OCT",0.1075,75,2250,"origin",1],["NOV",0.0485,165,2760,"origin",1],["DEC",0.0242,330,3920,"origin",1]]},
+edana:{tr:"Edana Zırhları (Edania)",en:"Edana Armor (Edania)",sys:'x',
+ levels:[["PRI",5.3,2,0,"edstone",1],["DUO",2.95,3,890,"edstone",1],["TRI",1.65,5,910,"edstone",1],["TET",1.1,8,940,"edstone",1],["PEN",0.5945,11,970,"edstone",1],["HEX",0.238,22,1320,"edstone",1],["SEP",0.19,25,1760,"edstone",1],["OCT",0.156,30,2250,"edstone",1],["NOV",0.0705,65,2760,"edstone",1],["DEC",0.0485,85,3280,"edstone",1]]},
+ekleta:{tr:"Ekleta Aksesuarları",en:"Ekleta Accessories",sys:'x',
+ levels:[["PRI",1.83,7,0,"ekmat",1],["DUO",1.57,7,290,"ekmat",1],["TRI",1.33,8,590,"ekmat",1],["TET",1.11,9,960,"ekmat",1],["PEN",0.91,10,1150,"ekmat",1],["HEX",0.73,12,1420,"ekmat",1],["SEP",0.58,14,1590,"ekmat",1],["OCT",0.44,16,1780,"ekmat",1],["NOV",0.31,20,2790,"ekmat",1],["DEC",0.2,30,3130,"ekmat",1]]},
+apeiron:{tr:"Apeiron Aksesuarları",en:"Apeiron Accessories",sys:'x',
+ levels:[["PRI",0.91,9,0,"apmat",1],["DUO",0.84,9,2160,"apmat",1],["TRI",0.77,10,2290,"apmat",1],["TET",0.7,10,2490,"apmat",1],["PEN",0.63,11,2670,"apmat",1],["HEX",0.56,12,2820,"apmat",1],["SEP",0.49,13,2980,"apmat",1],["OCT",0.42,15,3050,"apmat",1],["NOV",0.364,17,3290,"apmat",1],["DEC",0.235,27,3620,"apmat",1]]},
+phalasi:{tr:"Phalasi Carrack Teçhizatı",en:"Phalasi Carrack Gear",sys:'x',
+ levels:[["PRI",3,8,0,"phmat",50],["DUO",2,9,290,"phmat",50],["TRI",1.5,9,360,"phmat",50],["TET",1.25,11,380,"phmat",50],["PEN",1,12,400,"phmat",50],["HEX",0.85,14,420,"phmat",50],["SEP",0.7,17,440,"phmat",50],["OCT",0.55,20,460,"phmat",50],["NOV",0.4,25,480,"phmat",50],["DEC",0.25,30,540,"phmat",50]]},
+preonne:{tr:"Preonne Aksesuarları",en:"Preonne Accessories",sys:'fix',
+ levels:[["PRI",25,6,0,"gem",15],["DUO",20,8,360,"gem",16],["TRI",15,10,670,"gem",17],["TET",13,12,990,"gem",18],["PEN",11,14,1430,"gem",19],["HEX",10,15,1890,"gem",20],["SEP",9,17,2390,"gem",21],["OCT",8.5,18,2690,"gem",22],["NOV",8,19,2750,"gem",23],["DEC",7.5,20,2810,"gem",25]]},
+blackstar:{tr:"Blackstar Silahı",en:"Blackstar Weapon",sys:'leg',dura:1,
+ levels:[["+8",70,3,0,"conc",1],["+9",20.4081,7,0,"conc",1],["+10",14.2857,7,0,"conc",1],["+11",10,9,0,"conc",1],["+12",6.6666,10,0,"conc",1],["+13",4,13,0,"conc",1],["+14",2.5,17,0,"conc",1],["+15",2,20,0,"conc",1],["PRI",13.0769,4,0,"conc",1],["DUO",10.625,5,0,"conc",1],["TRI",3.4,6,100,"conc",1],["TET",0.51,9,591,"conc",1],["PEN",0.2,15,3670,"conc",1]]},
+fallengod:{tr:"Fallen God Zırhı",en:"Fallen God Armor",sys:'leg',dura:1,
+ levels:[["PRI",2,8,0,"conc",1],["DUO",1,10,1500,"conc",1],["TRI",0.5,12,2100,"conc",1],["TET",0.2,20,2700,"conc",1],["PEN",0.0025,1000,4000,"conc",1]]},
+tuvala:{tr:"Tuvala (Sezon)",en:"Tuvala (Season)",sys:'leg',approx:1,
+ levels:[["+8",70,2,0,"tuv1",1],["+9",68,2,0,"tuv1",3],["+10",67,2,0,"tuv1",3],["+11",66,9,0,"tuv1",3],["+12",65,10,0,"tuv1",4],["+13",64,13,0,"tuv1",4],["+14",60,17,0,"tuv1",5],["+15",55,20,0,"tuv1",5],["PRI",100,0,0,"tuv2",1],["DUO",100,0,0,"tuv2",1],["TRI",100,0,38,"tuv2",1],["TET",7,12,114,"tuv2",1],["PEN",5,35,429,"tuv2",1],["SEP",1.5,10,0,"tuv2",15],["OCT",1,11,220,"tuv2",25],["NOV",0.75,12,260,"tuv2",35],["DEC",0.6,13,355,"tuv2",50]]},
+boss:{tr:"Sarı Boss Teçhizatı",en:"Yellow Boss Gear",sys:'leg',dura:1,
+ levels:[["+8",17.2413,3,0,"bs",1],["+9",11.7647,7,0,"bs",3],["+10",7.6923,8,0,"bs",3],["+11",6.25,9,0,"bs",3],["+12",5,10,0,"bs",4],["+13",4,13,0,"bs",4],["+14",2.8571,17,0,"bs",5],["+15",2,20,0,"bs",5],["PRI",11.7647,5,0,"conc",1],["DUO",7.6923,7,0,"conc",1],["TRI",6.25,8,38,"conc",1],["TET",2,12,114,"conc",1],["PEN",0.3,35,429,"conc",1]]},
+manos_acc:{tr:"Manos Aksesuarları",en:"Manos Accessories",sys:'fix',drop:1,
+ levels:[["PRI",75,2,25,"gem",10],["DUO",45,4,80,"gem",11],["TRI",30,5,275,"gem",13],["TET",15,10,1100,"gem",16],["PEN",5,30,2200,"gem",20]]},
+manos_armor:{tr:"Manos Kıyafet/Zırh",en:"Manos Clothes/Armor",sys:'fix',dura:1,
+ levels:[["+8",70,3,0,"bgem",2],["+9",60,4,0,"bgem",3],["+10",50,4,0,"bgem",3],["+11",40,5,0,"bgem",3],["+12",30,7,0,"bgem",4],["+13",20,10,0,"bgem",4],["+14",15,14,0,"bgem",5],["+15",10,20,0,"bgem",5],["PRI",30,7,0,"gem",1],["DUO",25,8,0,"gem",1],["TRI",20,10,60,"gem",1],["TET",15,15,355,"gem",1],["PEN",6,35,1680,"gem",1]]},
+manos_tools:{tr:"Manos Aletleri",en:"Manos Tools",sys:'leg',dura:1,
+ levels:[["+8",70,3,0,"bs",1],["+9",20.408,7,0,"bs",1],["+10",14.286,8,0,"bs",1],["+11",10,9,0,"bs",1],["+12",6.667,10,0,"bs",1],["+13",4,13,0,"bs",1],["+14",2.5,17,0,"bs",1],["+15",2,20,0,"bs",1],["PRI",11.7647,5,0,"conc",1],["DUO",7.6923,7,0,"conc",1],["TRI",6.25,8,34,"conc",1],["TET",2,12,127,"conc",1],["PEN",0.3,35,549,"conc",1]]},
+deboreka:{tr:"Deboreka Aksesuarları",en:"Deboreka Accessories",sys:'leg',drop:1,
+ levels:[["PRI",25,5,95,"dupe",1],["DUO",10,6,288,"dupe",1],["TRI",7.5,8,865,"dupe",1],["TET",2.5,10,2405,"dupe",1],["PEN",0.5,20,11548,"dupe",1]]},
+yellow_acc:{tr:"Sarı Aksesuarlar (genel)",en:"Yellow Accessories (generic)",sys:'leg',drop:1,cronEdit:1,
+ levels:[["PRI",25,5,50,"dupe",1],["DUO",10,6,160,"dupe",1],["TRI",7.5,8,430,"dupe",1],["TET",2.5,10,1200,"dupe",1],["PEN",0.5,20,3200,"dupe",1]]},
+old_manos:{tr:"Eski Manos Aksesuarları",en:"Old Manos Accessories",sys:'leg',drop:1,
+ levels:[["PRI",17.5,5,37,"dupe",1],["DUO",8,6,112,"dupe",1],["TRI",5,8,336,"dupe",1],["TET",2.5,10,934,"dupe",1],["PEN",0.5,20,4484,"dupe",1]]}
+};
 const CRON_DEF=3000000;
-const ROM=["I","II","III","IV","V","VI","VII","VIII","IX","X"];
+const ROMMAP={PRI:"I",DUO:"II",TRI:"III",TET:"IV",PEN:"V",HEX:"VI",SEP:"VII",OCT:"VIII",NOV:"IX",DEC:"X"};
+const DEF_FS_X=[120,165,220,250,275,300,310,310,310,310,310,310,310,310,310,310,310];
+const DEF_FS_LEG=[40,50,60,70,80,90,100,110,120,140,160,200,250,300,300,300,300];
 
 // ── i18n
 const L10N={
 tr:{nvMap:"Harita",nvEnh:"Geliştirme",nvFs:"FS Maliyeti",nvLs:"Yaşam Becerisi",
- h1:"Geliştirme Hesaplayıcı",sub:"X-seviye sistemi (PRI–DEC): şans, pity ve ortalama maliyet — cron'lu tıklama varsayılır, fiyatlar düzenlenebilir.",
+ h1:"Geliştirme Hesaplayıcı",sub:"16 item hattı · şans, pity ve ortalama maliyet — cron'lu tıklama varsayılır, fiyatlar düzenlenebilir.",
  item:"Geliştirilecek item",start:"Başlangıç seviyesi",goal:"Hedef seviye",valks:"Valks FS bonusu",baseCost:"Başlangıç item maliyeti (ops.)",
  cron:"Cron Taşı fiyatı",live:"Canlı fiyat çek",liveWait:"Pazar fiyatları çekiliyor…",liveOk:"Canlı fiyatlar yüklendi",
  liveFail:"Canlı fiyat alınamadı (API meşgul olabilir) — elle girilen fiyatlar kullanılıyor",
  base:"Başlangıç",lvl:"Seviye",valksTh:"Valks",chance:"Şans",clicks:"Ort. tık",pity:"Pity",crons:"Ort. cron",mats:"Ort. malzeme",
  cost:"Ort. seviye maliyeti",cum:"Kümülatif",oddspity:"Pity olasılığı",total:"TOPLAM",
- formula:"Şans = taban × (1 + FS/10). Pity: tabloda yazan sayıda başarısızlıktan sonraki tık garantidir.",
- model:"Model: her tıkta aynı FS ile girildiği varsayılır; her tık cron + malzeme tüketir (başarılı tık dahil). Cron kullanıldığı için seviye düşmez. Ort. tık pity dahil hesaplanır. Kümülatif toplam, seçilen başlangıç→hedef aralığının toplamıdır.",
- ft:"Veriler oyun içi resmi değerlerdir; kod bu siteye özeldir."},
+ sysx:"Yeni sistem: şans = taban × (1 + FS/10). Cron ile seviye düşmez.",
+ sysleg:"Eski sistem: FS başına +taban/10; %70'ten sonra +taban/50; üst sınır %90. Cron ile seviye düşmez.",
+ sysfix:"Bu item hattında failstack şansı etkilemez (sabit şans).",
+ dropNote:"Bu aksesuarlarda cron kullansan bile başarısızlıkta seviye 1 düşer — tabloda yeniden tırmanma maliyeti dahildir.",
+ duraNote:"Not: dayanıklılık onarımı (memory fragment) maliyeti dahil değildir.",
+ approxNote:"Not: Tuvala verisinin bir kısmı sezon dönüşümleriyle iç içedir; değerleri yaklaşık kabul et.",
+ fsNote:"Not: FS basma maliyeti dahil değildir — onun için FS Maliyeti sayfasına bak.",
+ cronEditNote:"Cron adedi aksesuara göre değişir — tablodaki cron sütununu kendi item'ına göre düzenle.",
+ pityNote:"Pity: tabloda yazan sayıda başarısızlıktan sonraki tık garantidir.",
+ defNote:"Varsayılan fiyatlar örnektir (MENA ölçeğinde) — kendi sunucuna göre düzenle ya da canlı çek.",
+ ft:"Oyun değerleri resmi oyun içi sayılardır; kod bu siteye özeldir."},
 en:{nvMap:"Map",nvEnh:"Enhancement",nvFs:"FS Cost",nvLs:"Lifeskill",
- h1:"Enhancement Calculator",sub:"X-level system (PRI–DEC): chance, pity and average cost — cron clicks assumed, prices editable.",
+ h1:"Enhancement Calculator",sub:"16 item lines · chance, pity and average cost — cron clicks assumed, prices editable.",
  item:"Item to enhance",start:"Starting level",goal:"Goal level",valks:"Valks FS bonus",baseCost:"Base item cost (opt.)",
  cron:"Cron Stone price",live:"Fetch live prices",liveWait:"Fetching market prices…",liveOk:"Live prices loaded",
  liveFail:"Could not fetch live prices (API may be busy) — using manual prices",
  base:"Base",lvl:"Level",valksTh:"Valks",chance:"Chance",clicks:"Avg. clicks",pity:"Pity",crons:"Avg. crons",mats:"Avg. mats",
  cost:"Avg. level cost",cum:"Cumulative",oddspity:"Pity odds",total:"TOTAL",
- formula:"Chance = base × (1 + FS/10). Pity: the click after the listed number of fails is guaranteed.",
- model:"Model: assumes you re-enter with the same FS each click; every click consumes crons + materials (including the successful one). Crons prevent level drops. Avg. clicks includes pity. Cumulative sums the selected start→goal range.",
+ sysx:"New system: chance = base × (1 + FS/10). Crons prevent level drops.",
+ sysleg:"Legacy system: +base/10 per FS; +base/50 beyond 70%; capped at 90%. Crons prevent level drops.",
+ sysfix:"Failstacks do not affect this item line (fixed chance).",
+ dropNote:"These accessories drop one level on fail even with crons — the table includes re-climb costs.",
+ duraNote:"Note: durability repair (memory fragments) cost is not included.",
+ approxNote:"Note: some Tuvala rows mix with season conversions; treat values as approximate.",
+ fsNote:"Note: failstack building cost is not included — see the FS Cost page.",
+ cronEditNote:"Cron counts vary per accessory — edit the cron column for your item.",
+ pityNote:"Pity: the click after the listed number of fails is guaranteed.",
+ defNote:"Default prices are examples (MENA scale) — adjust for your server or fetch live.",
  ft:"Game values are official in-game numbers; code is original to this site."}};
 let lang='tr';
 try{const s=localStorage.getItem('bdo_tachyon_lang');if(s==='en'||s==='tr')lang=s;}catch(e){}
 const T=()=>L10N[lang];
 
 // ── Durum / State
-const S={item:'kharazad',start:0,goal:10,valks:10,fs:DEF_FS.slice(),useValks:Array(10).fill(true),
-        prices:{cron:CRON_DEF},baseCost:0};
-try{const st=JSON.parse(localStorage.getItem('bdo_enh_v1')||'{}');Object.assign(S,st);}catch(e){}
+const S={item:'kharazad',start:0,goal:10,valks:10,fsMap:{},valksMap:{},cronOv:{},prices:{cron:CRON_DEF},baseCost:0};
+try{const st=JSON.parse(localStorage.getItem('bdo_enh_v2')||'{}');Object.assign(S,st);}catch(e){}
 if(!ITEMS[S.item])S.item='kharazad';
-const save=()=>{try{localStorage.setItem('bdo_enh_v1',JSON.stringify(S));}catch(e){}};
-const priceOf=k=>{const it=ITEMS[S.item];const m=it.mats[k];return S.prices[S.item+'_'+k]??m.def;};
+const save=()=>{try{localStorage.setItem('bdo_enh_v2',JSON.stringify(S));}catch(e){}};
+const IT=()=>ITEMS[S.item];
+const nLv=()=>IT().levels.length;
+function fsArr(){if(!S.fsMap[S.item]){const d=IT().sys==='x'?DEF_FS_X:DEF_FS_LEG;S.fsMap[S.item]=IT().levels.map((_,i)=>d[Math.min(i,d.length-1)]);}return S.fsMap[S.item];}
+function vArr(){if(!S.valksMap[S.item])S.valksMap[S.item]=IT().levels.map(()=>true);return S.valksMap[S.item];}
+function cronOf(i){const ov=S.cronOv[S.item];return (ov&&ov[i]!=null)?ov[i]:IT().levels[i][3];}
+const priceOf=k=>S.prices[k]??MAT[k].def;
 
 // ── Motor / Engine
-function chance(base,fs){return Math.min(90,base*(1+fs/10));}
+function chanceOf(base,fs,sys){
+  if(sys==='fix')return Math.min(90,base);
+  if(sys==='x')return Math.min(90,base*(1+fs/10));
+  let c=base;
+  for(let i=0;i<fs;i++){c+=c<70?base/10:base/50;if(c>=90)return 90;}
+  return Math.min(90,c);
+}
 function levelStats(i){
-  const it=ITEMS[S.item];
-  const [nm,base,pity,cron,qty,fsGain,matKey]=it.levels[i];
-  const fsEff=S.fs[i]+(S.useValks[i]?+S.valks:0);
-  const p=chance(base,fsEff)/100;
+  const it=IT();
+  const [nm,base,pity,,matKey,qty]=it.levels[i];
+  const cron=cronOf(i);
+  const fsEff=(it.sys==='fix')?0:fsArr()[i]+(vArr()[i]?+S.valks:0);
+  const p=Math.max(0.000001,chanceOf(base,fsEff,it.sys)/100);
   let E=0,q=1;
-  for(let k=1;k<=pity;k++){E+=k*q*p;q*=(1-p);}
-  E+=(pity+1)*q; // garantili tık / guaranteed click
-  const pPity=Math.pow(1-p,pity);
+  if(pity>0){for(let k=1;k<=pity;k++){E+=k*q*p;q*=(1-p);}E+=(pity+1)*q;}
+  else E=1/p;
+  const pPity=pity>0?Math.pow(1-p,pity):0;
   const clickCost=cron*S.prices.cron+qty*priceOf(matKey);
-  return{nm,base,pity,cron,qty,matKey,fsEff,p,E,pPity,cost:E*clickCost,crons:E*cron,mats:E*qty};
+  return{nm,pity,cron,qty,matKey,p,E,pPity,clickCost};
+}
+function computeAll(){
+  const it=IT(),out=[];
+  let prevC=0,prevCr=0,prevM={};
+  for(let i=0;i<it.levels.length;i++){
+    const s=levelStats(i);
+    let C,Cr,Mq;
+    if(it.drop){ // başarısızlıkta -1 seviye: yeniden tırmanma dahil
+      C=s.E*s.clickCost+(s.E-1)*prevC;
+      Cr=s.E*s.cron+(s.E-1)*prevCr;
+      Mq={};Mq[s.matKey]=s.E*s.qty;
+      for(const k in prevM)Mq[k]=(Mq[k]||0)+(s.E-1)*prevM[k];
+    }else{
+      C=s.E*s.clickCost;Cr=s.E*s.cron;Mq={};Mq[s.matKey]=s.E*s.qty;
+    }
+    out.push({...s,C,Cr,Mq});
+    prevC=C;prevCr=Cr;prevM=Mq;
+  }
+  return out;
 }
 
 // ── Biçim / Format
-const fmt=n=>Math.round(n).toLocaleString(lang==='en'?'en-US':'tr-TR');
-const fmtPct=p=>(p*100).toLocaleString(lang==='en'?'en-US':'tr-TR',{maximumFractionDigits:2})+' %';
+const loc=()=>lang==='en'?'en-US':'tr-TR';
+const fmt=n=>Math.round(n).toLocaleString(loc());
+const fmtPct=p=>(p*100).toLocaleString(loc(),{maximumFractionDigits:2})+' %';
 
 // ── Render
 function buildSelectors(){
-  const t=T();
+  const t=T(),it=IT();
   const st=document.getElementById('start'),go=document.getElementById('goal');
   st.innerHTML='';go.innerHTML='';
-  const it=ITEMS[S.item];
   const bo=document.createElement('option');bo.value=0;bo.textContent=t.base;st.appendChild(bo);
   it.levels.forEach((L,i)=>{
-    if(i<it.levels.length-1){const o=document.createElement('option');o.value=i+1;o.textContent=`${L[0]} (${ROM[i]})`;st.appendChild(o);}
-    const o2=document.createElement('option');o2.value=i+1;o2.textContent=`${L[0]} (${ROM[i]})`;go.appendChild(o2);
+    const nm=ROMMAP[L[0]]?`${L[0]} (${ROMMAP[L[0]]})`:L[0];
+    if(i<it.levels.length-1){const o=document.createElement('option');o.value=i+1;o.textContent=nm;st.appendChild(o);}
+    const o2=document.createElement('option');o2.value=i+1;o2.textContent=nm;go.appendChild(o2);
   });
-  st.value=Math.min(S.start,it.levels.length-1);go.value=Math.max(S.goal,+st.value+1);
-  S.start=+st.value;S.goal=+go.value;
+  if(S.start>=it.levels.length)S.start=0;
+  if(S.goal>it.levels.length||S.goal<=S.start)S.goal=it.levels.length;
+  st.value=S.start;go.value=S.goal;
 }
 function buildPrices(){
-  const t=T(),it=ITEMS[S.item];
+  const it=IT();
   document.getElementById('p-cron').value=S.prices.cron;
   const box=document.getElementById('mat-prices');
   box.innerHTML='';
-  for(const k in it.mats){
-    const m=it.mats[k];
+  const keys=[...new Set(it.levels.map(L=>L[4]))];
+  for(const k of keys){
+    const m=MAT[k];
     const row=document.createElement('div');row.className='price-row';
     row.innerHTML=`<span class="nm">${lang==='en'?m.en:m.tr}</span>`;
     const inp=document.createElement('input');inp.type='number';inp.min=0;inp.step=100000;inp.value=priceOf(k);
-    inp.oninput=()=>{S.prices[S.item+'_'+k]=+inp.value||0;save();renderTable();};
+    inp.oninput=()=>{S.prices[k]=+inp.value||0;save();renderTable();};
     row.appendChild(inp);box.appendChild(row);
   }
 }
 function renderTable(){
-  const t=T(),it=ITEMS[S.item];
+  const t=T(),it=IT();
+  const all=computeAll();
   const tb=document.getElementById('tbody');
   tb.innerHTML='';
   let cum=+S.baseCost||0,cumC=0,cumM=0;
-  it.levels.forEach((L,i)=>{
+  all.forEach((s,i)=>{
     const lv=i+1;
-    const s=levelStats(i);
     const inRange=lv>S.start&&lv<=S.goal;
-    if(inRange){cum+=s.cost;cumC+=s.crons;cumM+=s.mats;}
+    const matSum=Object.values(s.Mq).reduce((a,b)=>a+b,0);
+    if(inRange){cum+=s.C;cumC+=s.Cr;cumM+=matSum;}
     const tr=document.createElement('tr');
     if(!inRange)tr.className='outside';
-    tr.innerHTML=`<td class="lvl">${s.nm} (${ROM[i]})</td>
-      <td><input class="fs" type="number" min="0" max="400" value="${S.fs[i]}" data-i="${i}"></td>
-      <td><input type="checkbox" data-v="${i}" ${S.useValks[i]?'checked':''}></td>
+    const nm=ROMMAP[s.nm]?`${s.nm} (${ROMMAP[s.nm]})`:s.nm;
+    const fsCell=it.sys==='fix'?'—':`<input class="fs" type="number" min="0" max="400" value="${fsArr()[i]}" data-i="${i}">`;
+    const vCell=it.sys==='fix'?'—':`<input type="checkbox" data-v="${i}" ${vArr()[i]?'checked':''}>`;
+    const cronCell=it.cronEdit?`<input class="fs" type="number" min="0" value="${cronOf(i)}" data-c="${i}">`:fmt(s.Cr);
+    tr.innerHTML=`<td class="lvl">${nm}</td>
+      <td>${fsCell}</td><td>${vCell}</td>
       <td>${fmtPct(s.p)}</td>
-      <td>${s.E.toLocaleString(lang==='en'?'en-US':'tr-TR',{maximumFractionDigits:2})}</td>
-      <td>${s.pity}</td>
-      <td>${fmt(s.crons)}</td>
-      <td>${fmt(s.mats)}</td>
-      <td>${fmt(s.cost)}</td>
+      <td>${s.E.toLocaleString(loc(),{maximumFractionDigits:2})}</td>
+      <td>${s.pity||'—'}</td>
+      <td>${cronCell}</td>
+      <td>${fmt(matSum)}</td>
+      <td>${fmt(s.C)}</td>
       <td>${inRange?fmt(cum):'—'}</td>
-      <td>${fmtPct(s.pPity)}</td>`;
+      <td>${s.pity?fmtPct(s.pPity):'—'}</td>`;
     tb.appendChild(tr);
   });
   const tr=document.createElement('tr');tr.className='total';
   tr.innerHTML=`<td>${t.total}</td><td></td><td></td><td></td><td></td><td></td>
     <td>${fmt(cumC)}</td><td>${fmt(cumM)}</td><td></td><td class="ok">${fmt(cum)}</td><td></td>`;
   tb.appendChild(tr);
-  tb.querySelectorAll('input.fs').forEach(inp=>{
-    inp.oninput=()=>{S.fs[+inp.dataset.i]=Math.max(0,Math.min(400,+inp.value||0));save();renderTable();};
+  tb.querySelectorAll('input.fs[data-i]').forEach(inp=>{
+    inp.oninput=()=>{fsArr()[+inp.dataset.i]=Math.max(0,Math.min(400,+inp.value||0));save();renderTable();};
   });
-  tb.querySelectorAll('input[type=checkbox]').forEach(cb=>{
-    cb.onchange=()=>{S.useValks[+cb.dataset.v]=cb.checked;save();renderTable();};
+  tb.querySelectorAll('input.fs[data-c]').forEach(inp=>{
+    inp.oninput=()=>{if(!S.cronOv[S.item])S.cronOv[S.item]=[];S.cronOv[S.item][+inp.dataset.c]=Math.max(0,+inp.value||0);save();renderTable();};
   });
+  tb.querySelectorAll('input[type=checkbox][data-v]').forEach(cb=>{
+    cb.onchange=()=>{vArr()[+cb.dataset.v]=cb.checked;save();renderTable();};
+  });
+  // notlar / notes
+  const notes=[];
+  notes.push(it.sys==='x'?t.sysx:it.sys==='leg'?t.sysleg:t.sysfix);
+  notes.push(t.pityNote);
+  if(it.drop)notes.push(t.dropNote);
+  if(it.dura)notes.push(t.duraNote);
+  if(it.cronEdit)notes.push(t.cronEditNote);
+  if(it.approx)notes.push(t.approxNote);
+  notes.push(t.fsNote,t.defNote);
+  document.getElementById('n-model').innerHTML=notes.map(n=>'• '+n).join('<br>');
 }
 function applyLang(){
   const t=T();
@@ -269,24 +370,23 @@ function applyLang(){
   set('l-cron',t.cron);set('btn-live',t.live);
   set('th-lvl',t.lvl);set('th-valks',t.valksTh);set('th-chance',t.chance);set('th-clicks',t.clicks);
   set('th-pity',t.pity);set('th-crons',t.crons);set('th-mats',t.mats);set('th-cost',t.cost);set('th-cum',t.cum);set('th-oddspity',t.oddspity);
-  set('n-formula',t.formula);set('n-model',t.model);set('ft',t.ft);
+  set('n-formula',t.pityNote);set('ft',t.ft);
   document.getElementById('lang-tr').classList.toggle('on',lang==='tr');
   document.getElementById('lang-en').classList.toggle('on',lang==='en');
-  // item adları / item names
   const sel=document.getElementById('item');
-  [...sel.options].forEach(o=>{if(ITEMS[o.value])o.textContent=lang==='en'?ITEMS[o.value].en:ITEMS[o.value].tr;});
+  sel.innerHTML='';
+  for(const k in ITEMS){const o=document.createElement('option');o.value=k;o.textContent=lang==='en'?ITEMS[k].en:ITEMS[k].tr;sel.appendChild(o);}
+  sel.value=S.item;
   buildSelectors();buildPrices();renderTable();
 }
 function setLang(l){lang=l;try{localStorage.setItem('bdo_tachyon_lang',l);}catch(e){}applyLang();}
 document.getElementById('lang-tr').onclick=()=>setLang('tr');
 document.getElementById('lang-en').onclick=()=>setLang('en');
 
-// ── Kontroller / Controls
 const el=id=>document.getElementById(id);
-el('item').value=S.item;
 el('item').onchange=()=>{S.item=el('item').value;S.start=0;S.goal=ITEMS[S.item].levels.length;save();applyLang();};
 el('start').onchange=()=>{S.start=+el('start').value;if(S.goal<=S.start)S.goal=S.start+1;save();buildSelectors();renderTable();};
-el('goal').onchange=()=>{S.goal=+el('goal').value;if(S.goal<=S.start){S.start=S.goal-1;}save();buildSelectors();renderTable();};
+el('goal').onchange=()=>{S.goal=+el('goal').value;if(S.goal<=S.start)S.start=S.goal-1;save();buildSelectors();renderTable();};
 el('valks').value=S.valks;
 el('valks').onchange=()=>{S.valks=+el('valks').value;save();renderTable();};
 el('baseCost').value=S.baseCost;
@@ -297,21 +397,22 @@ el('p-cron').oninput=()=>{S.prices.cron=+el('p-cron').value||0;save();renderTabl
 let toastT;
 function toast(m){const e=el('toast');e.textContent=m;e.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>e.style.opacity=0,2500);}
 el('btn-live').onclick=async()=>{
-  const t=T(),it=ITEMS[S.item],reg=el('region').value;
+  const t=T(),it=IT(),reg=el('region').value;
   el('live-status').textContent=t.liveWait;
   try{
-    const ids=Object.values(it.mats).map(m=>m.id);
-    const q=ids.map(i=>'id='+i).join('&');
+    const keys=[...new Set(it.levels.map(L=>L[4]))].filter(k=>MAT[k].id>0);
+    if(!keys.length)throw new Error('no ids');
+    const q=keys.map(k=>'id='+MAT[k].id).join('&');
     const r=await fetch(`https://api.arsha.io/v2/${reg}/item?${q}&lang=en`);
     if(!r.ok)throw new Error('http '+r.status);
     const data=await r.json();
     const arr=Array.isArray(data)?data:[data];
     let n=0;
-    for(const k in it.mats){
-      const m=it.mats[k];
+    for(const k of keys){
+      const m=MAT[k];
       const hit=arr.find(x=>x&&(x.id===m.id||x.mainKey===m.id));
       const price=hit&&(hit.basePrice??hit.pricePerOne??hit.lastSoldPrice);
-      if(price>0){S.prices[S.item+'_'+k]=price;n++;}
+      if(price>0){S.prices[k]=price;n++;}
     }
     if(!n)throw new Error('no data');
     save();buildPrices();renderTable();
