@@ -119,46 +119,67 @@ main { animation:bdoFade .25s ease-out; }
   <div class="card">
     <table>
       <thead><tr>
-        <th data-i="Bölge|Zone"></th>
-        <th data-i="Önerilen AP|DP|Recommended AP|DP"></th>
+        <th data-i="Kale · Hükümdar|Castle · Domain"></th>
+        <th data-i="Bölge AP|DP|Zone AP|DP"></th>
+        <th data-i="Toplam AP|DP|Total AP|DP"></th>
         <th class="wrap" data-i="Çöp loot (adet)|Trash loot (each)"></th>
         <th class="wrap" data-i="Öne çıkan droplar|Notable drops"></th>
         <th data-i="Gerekli CC|CC needed"></th>
       </tr></thead>
       <tbody>
-        <tr><td><b>Aetherion</b> <span data-i="Kalesi|Castle"></span></td><td><span class="ap">350</span> | <span class="dp">427</span></td><td class="wrap" data-i="Soğumuş Ruh Parçası — 105.640|Chilled Soul Piece — 105,640"></td><td class="wrap" data-i="WON Alacakaranlık Kristali (+15 AP Edania), Primordial parçaları, Deboreka (TRI'ye kadar)|WON Dusky Ruin Crystal (+15 AP Edanian), Primordial fragments, Deboreka (up to TRI)"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
-        <tr><td><b>Nymphamaré</b> <span data-i="Kalesi|Castle"></span></td><td><span class="ap">370</span> | <span class="dp">440</span></td><td class="wrap" data-i="Kirlenmiş Mercan Parçası — 116.200|Contaminated Coral Piece — 116,200"></td><td class="wrap" data-i="BON Kristal (+30 AP Edania), Endtimes Enerjisi, Deboreka (TRI)|BON Crystal (+30 AP Edanian), Endtimes Energy, Deboreka (TRI)"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
-        <tr><td><b>Orbita</b> <span data-i="Kalesi|Castle"></span></td><td><span class="ap">380</span> | <span class="dp">450</span></td><td class="wrap" data-i="Işıksız Çekirdek — 140.600|Lightlost Core — 140,600"></td><td class="wrap" data-i="JIN Kristal (+45 AP Edania), Endtimes Enerjisi, Deboreka (TRI)|JIN Crystal (+45 AP Edanian), Endtimes Energy, Deboreka (TRI)"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
-        <tr><td><b>Tenebraum</b> <span data-i="Kalesi|Castle"></span></td><td><span class="ap">390</span> | <span class="dp">450</span></td><td class="wrap" data-i="Kadim Asker Parçası — 147.630|Ancient Soldier Fragment — 147,630"></td><td class="wrap" data-i="HAN Kristal (+60 AP Edania), Herald Kristalleri, Deboreka (TRI)|HAN Crystal (+60 AP Edanian), Herald's Crystals, Deboreka (TRI)"></td><td data-i="Geri İtme, Havaya Kaldırma|Knockback, Float"></td></tr>
-        <tr><td><b>Zephyros</b> <span data-i="Kalesi|Castle"></span></td><td><span class="ap">395</span> | <span class="dp">460</span></td><td class="wrap" data-i="Sertleşmiş Lav Parçası — 126.980|Hardened Lava Chunk — 126,980"></td><td class="wrap" data-i="HAN Kristal, Primordial Pigmentler, Deboreka (TET)|HAN Crystal, Primordial Pigments, Deboreka (TET)"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
-        <tr><td><span data-i="Karanlık Enerji Taşkın Ovası|Dark Energy Floodlands"></span> <span class="pill" data-i="3 kişilik parti|3-person party"></span></td><td><span class="ap">385</span> | <span class="dp">450</span></td><td class="wrap" data-i="Lekeli Zırh Parçası — 100.507 + Solgun Enerji — 597.680|Tainted Armor Frag — 100,507 + Dark Faded Energy — 597,680"></td><td class="wrap" data-i="HAN Kristal, Kusursuz Herald Kristali, Deboreka (TET)|HAN Crystal, Flawless Herald's Crystal, Deboreka (TET)"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
+        <tr><td><b>Aetherion</b> — <span data-i="Jordine'ın Diyarı|Jordine's Domain"></span></td><td><span class="ap">350</span> | <span class="dp">427</span></td><td>1565 | 615</td><td class="wrap" data-i="Soğumuş Ruh Parçası — 105.640|Chilled Soul Piece — 105,640"></td><td class="wrap" data-i="WON Alacakaranlık Kristali (+15 AP Edania), Primordial parçaları, Deboreka (TRI)|WON Dusky Ruin Crystal (+15 AP Edanian), Primordial fragments, Deboreka (TRI)"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
+        <tr><td><b>Nymphamaré</b> — <span data-i="Rusalka'nın Diyarı|Rusalka's Domain"></span></td><td><span class="ap">370</span> | <span class="dp">440</span></td><td>1660 | 720</td><td class="wrap" data-i="Kirlenmiş Mercan Parçası — 116.200|Contaminated Coral Piece — 116,200"></td><td class="wrap" data-i="BON Kristal (+30 AP Edania), Endtimes Enerjisi, Deboreka (TRI)|BON Crystal (+30 AP Edanian), Endtimes Energy, Deboreka (TRI)"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
+        <tr><td><b>Orbita</b> — <span data-i="Enslar'ın Diyarı|Enslar's Domain"></span></td><td><span class="ap">380</span> | <span class="dp">445-450</span></td><td>1770 | 740-760</td><td class="wrap" data-i="Işıksız Çekirdek — 140.600|Lightlost Core — 140,600"></td><td class="wrap" data-i="JIN Kristal (+45 AP Edania), Endtimes Enerjisi, Deboreka (TRI)|JIN Crystal (+45 AP Edanian), Endtimes Energy, Deboreka (TRI)"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
+        <tr><td><b>Tenebraum</b> — <span data-i="Cartian'ın Diyarı · Manticore|Cartian's Area · Manticore"></span></td><td><span class="ap">390</span> | <span class="dp">450</span></td><td>1890 | 760</td><td class="wrap" data-i="Kadim Asker Parçası — 147.630|Ancient Soldier Fragment — 147,630"></td><td class="wrap" data-i="HAN Kristal (+60 AP Edania), Herald Kristalleri, Deboreka (TRI)|HAN Crystal (+60 AP Edanian), Herald's Crystals, Deboreka (TRI)"></td><td data-i="Geri İtme, Havaya Kaldırma|Knockback, Float"></td></tr>
+        <tr><td><b>Zephyros</b> — <span data-i="Caphras'ın Diyarı · Beelzebub|Caphras' Area · Beelzebub"></span></td><td><span class="ap">395</span> | <span class="dp">460</span></td><td>1980 | 800</td><td class="wrap" data-i="Sertleşmiş Lav Parçası — 126.980|Hardened Lava Chunk — 126,980"></td><td class="wrap" data-i="HAN Kristal, Primordial Pigmentler, Deboreka (TET)|HAN Crystal, Primordial Pigments, Deboreka (TET)"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
+        <tr><td><span data-i="Karanlık Enerji Taşkın Ovası|Dark Energy Floodlands"></span> <span class="pill" data-i="3 kişilik parti|3-person party"></span></td><td><span class="ap">385</span> | <span class="dp">450</span></td><td>1850 | 760</td><td class="wrap" data-i="Lekeli Zırh Parçası — 100.507 + Solgun Enerji — 597.680|Tainted Armor Frag — 100,507 + Dark Faded Energy — 597,680"></td><td class="wrap" data-i="HAN Kristal, Kusursuz Herald Kristali, Deboreka (TET)|HAN Crystal, Flawless Herald's Crystal, Deboreka (TET)"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
       </tbody>
     </table>
-    <div class="note" data-i="Her kalede özel mekanik var (kule/direk kırma fazları). Tüm alanlar solo (Taşkın Ovası hariç). Ayrıca iç bölge kasılma alanları (Vulkanoid, Anemoi vb.) ve Tachyon Miras/İz koleksiyonu için Harita sayfasına bak.|Each castle has a unique mechanic (tower/pillar phases). All solo except Floodlands. For inner grind zones (Vulcanoid, Anemoi etc.) and Tachyon Legacy/Trace collectibles see the Map page."></div>
+    <div class="note" data-i="Her kalede özel mekanik var (kule/direk kırma fazları); Tenebraum'da Manticore, Zephyros'ta Beelzebub karşılaşmaları. Taşkın Ovası hariç hepsi solo. Zephyros oyunun en yüksek AP/DP gerektiren alanı. Değerler iki bağımsız kaynakla doğrulandı (BDFoundry + Garmoth); Orbita DP'sinde kaynaklar 445 ve 450 diyor.|Each castle has a unique mechanic (tower/pillar phases); Manticore in Tenebraum, Beelzebub in Zephyros. All solo except Floodlands. Zephyros has the highest AP/DP requirement in the game. Values cross-checked with two sources (BDFoundry + Garmoth); Orbita DP is listed as 445 or 450."></div>
   </div>
 
   <h2 data-i="Part 2 — Tapınak Boss'ları|Part 2 — Temple Bosses"></h2>
   <div class="card">
     <table>
       <thead><tr>
-        <th data-i="Boss · Bölge|Boss · Zone"></th>
-        <th data-i="Önerilen AP|DP|Recommended AP|DP"></th>
-        <th data-i="Canavar Lv|Monster Lv"></th>
-        <th data-i="Saatlik gümüş ≈|Silver/hour ≈"></th>
-        <th class="wrap" data-i="Çöp loot (adet | LT)|Trash loot (each | LT)"></th>
+        <th data-i="Boss · Tapınak|Boss · Temple"></th>
+        <th data-i="Boss için AP|DP|Boss AP|DP"></th>
+        <th data-i="Seviye|Level"></th>
         <th class="wrap" data-i="Boss ödülü|Boss reward"></th>
         <th data-i="Gerekli CC|CC needed"></th>
       </tr></thead>
       <tbody>
-        <tr><td><b>Agris</b> — <span data-i="Aphrodon Tapınağı|Temple of Aphrodon"></span></td><td><span class="ap">405</span> | <span class="dp">485</span></td><td>66</td><td>110M</td><td class="wrap" data-i="Bereket Dalı — 155.127 | 0,3|Branch of Abundance — 155,127 | 0.3"></td><td class="wrap" data-i="3.000M gümüş veya 3-8 + 1-5 malzeme|3,000M silver or 3-8 + 1-5 mats"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
-        <tr><td><b>Markthanan</b> — <span data-i="Hermesia Tapınağı|Temple of Hermesia"></span></td><td><span class="ap">410</span> | <span class="dp">490</span></td><td>66</td><td>120M</td><td class="wrap" data-i="Kara Kristal Parçası — 160.539 | 0,3|Black Crystal Fragment — 160,539 | 0.3"></td><td class="wrap" data-i="3.100M gümüş veya 3-8 + 1-5 malzeme|3,100M silver or 3-8 + 1-5 mats"></td><td data-i="Geri İtme, Havaya Kaldırma|Knockback, Float"></td></tr>
-        <tr><td><b>Elion</b> — <span data-i="Magaia Tapınağı|Temple of Magaia"></span></td><td><span class="ap">415</span> | <span class="dp">495</span></td><td>66</td><td>130M</td><td class="wrap" data-i="Elion Müridi Miğferi ≈ — 160.539 | 0,3|Elion Follower's Helmet ≈ — 160,539 | 0.3"></td><td class="wrap" data-i="3.200M gümüş veya 3-8 + 1-5 malzeme|3,200M silver or 3-8 + 1-5 mats"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
-        <tr><td><b>Aal</b> — <span data-i="Aresion Tapınağı|Temple of Aresion"></span></td><td><span class="ap">420</span> | <span class="dp">505</span></td><td>66</td><td>140M</td><td class="wrap" data-i="Yanık Kemer Süsü ≈ — 182.049 | 0,3|Scorched Belt Ornament ≈ — 182,049 | 0.3"></td><td class="wrap" data-i="3.300M gümüş veya 3-8 + 1-5 malzeme|3,300M silver or 3-8 + 1-5 mats"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
-        <tr><td><b>Hadum</b> — <span data-i="Voidekaia Tapınağı|Temple of Voidekaia"></span> <span class="soon" data-i="(17 Eylül'de geliyor)|(coming Sept 17)"></span></td><td><span class="ap">425</span> | <span class="dp">510</span></td><td>67</td><td>150M</td><td class="wrap" data-i="Boşluğun Kırık Eldiveni — 196.501 | 0,3|Broken Gloves of the Void — 196,501 | 0.3"></td><td class="wrap" data-i="4.000M gümüş veya 3-8 + 1-3 + 1-3 malzeme|4,000M silver or 3-8 + 1-3 + 1-3 mats"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
-        <tr><td><span data-i="Yargı Terazisi|Scales of Judgment"></span> <span class="pill" data-i="3 kişilik parti alanı|3-person party spot"></span></td><td><span class="ap">415</span> | <span class="dp">495</span></td><td>66</td><td>—</td><td class="wrap" data-i="Elion Müridi Nişanı — 186.458 | 0,3|Elion Follower's Mark — 186,458 | 0.3"></td><td class="wrap" data-i="3.200M gümüş veya 3-8 + 1-5 malzeme|3,200M silver or 3-8 + 1-5 mats"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
+        <tr><td class="b">Agris</td><td><span class="ap">405</span> | <span class="dp">485</span></td><td>66</td><td class="wrap" data-i="3.000M gümüş veya 3-8 + 1-5 malzeme|3,000M silver or 3-8 + 1-5 mats"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
+        <tr><td class="b">Markthanan</td><td><span class="ap">410</span> | <span class="dp">490</span></td><td>66</td><td class="wrap" data-i="3.100M gümüş veya 3-8 + 1-5 malzeme|3,100M silver or 3-8 + 1-5 mats"></td><td data-i="Geri İtme, Havaya Kaldırma|Knockback, Float"></td></tr>
+        <tr><td class="b">Elion</td><td><span class="ap">415</span> | <span class="dp">495</span></td><td>66</td><td class="wrap" data-i="3.200M gümüş veya 3-8 + 1-5 malzeme|3,200M silver or 3-8 + 1-5 mats"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
+        <tr><td class="b">Aal</td><td><span class="ap">420</span> | <span class="dp">505</span></td><td>66</td><td class="wrap" data-i="3.300M gümüş veya 3-8 + 1-5 malzeme|3,300M silver or 3-8 + 1-5 mats"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
+        <tr><td class="b">Hadum <span class="soon" data-i="(17 Eylül)|(Sept 17)"></span></td><td><span class="ap">425</span> | <span class="dp">510</span></td><td>67</td><td class="wrap" data-i="4.000M gümüş veya 3-8 + 1-3 + 1-3 malzeme|4,000M silver or 3-8 + 1-3 + 1-3 mats"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
       </tbody>
     </table>
-    <div class="note" data-i="Öne çıkan droplar (tüm tapınaklar): Origin Shard (WON/BON/JIN/HAN), Nev Parçası, Twilight of the End aksesuar malzemeleri, Broken Vestige (3-4 Milyar). AP/DP değerlerinde kaynaklar arasında ±5 fark olabilir (cheat sheet vs BDFoundry). Saatlik gümüş, loot scroll'suz tahminlerdir.|Notable drops (all temples): Origin Shards (WON/BON/JIN/HAN), Nev's Fragment, Twilight of the End accessory mats, Broken Vestige (3-4 billion). AP/DP may differ ±5 between sources (cheat sheet vs BDFoundry). Silver/hour are estimates without loot scrolls."></div>
+    <div class="note" data-i="Bu AP/DP değerleri boss'u yenmek içindir — bölgede kasılmak için gereken değerler aşağıdaki tabloda, daha düşüktür.|These AP/DP values are for defeating the boss — the requirements for grinding the zone are lower, see the table below."></div>
+  </div>
+
+  <h2 data-i="Part 2 — Tapınak Kasılma Alanları|Part 2 — Temple Grind Spots"></h2>
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th data-i="Tapınak · Hükümdar|Temple · Domain"></th>
+        <th data-i="Bölge AP|DP|Zone AP|DP"></th>
+        <th data-i="Toplam AP|DP|Total AP|DP"></th>
+        <th data-i="Lv"></th>
+        <th data-i="Saatlik gümüş ≈|Silver/hour ≈"></th>
+        <th class="wrap" data-i="Çöp loot (adet | LT)|Trash loot (each | LT)"></th>
+      </tr></thead>
+      <tbody>
+        <tr><td><span data-i="Aphrodon Tapınağı|Aphrodon Temple"></span> — <b>Agris</b></td><td><span class="ap">400</span> | <span class="dp">470</span></td><td>2090 | 810</td><td>66</td><td>110M</td><td class="wrap" data-i="Bereket Dalı — 155.127 | 0,3|Branch of Abundance — 155,127 | 0.3"></td></tr>
+        <tr><td><span data-i="Hermesia Tapınağı|Hermesia Temple"></span> — <b>Markthanan</b></td><td><span class="ap">405</span> | <span class="dp">485</span></td><td>2220 | 830</td><td>66</td><td>120M</td><td class="wrap" data-i="Kara Kristal Parçası — 160.539 | 0,3|Black Crystal Fragment — 160,539 | 0.3"></td></tr>
+        <tr><td><span data-i="Magaia Tapınağı|Magaia Temple"></span> — <b>Elion</b></td><td><span class="ap">410</span> | <span class="dp">490</span></td><td>2340 | 840</td><td>66</td><td>130M</td><td class="wrap" data-i="Elion Müridi Miğferi — 160.539 | 0,3|Elion Follower's Helmet — 160,539 | 0.3"></td></tr>
+        <tr><td><span data-i="Aresion Tapınağı|Aresion Temple"></span> — <b>Aal</b></td><td><span class="ap">415</span> | <span class="dp">495</span></td><td>2455 | 850</td><td>66</td><td>140M</td><td class="wrap" data-i="Yanık Kemer Süsü — 182.049 | 0,3|Scorched Belt Ornament — 182,049 | 0.3"></td></tr>
+        <tr><td><span data-i="Yargı Terazisi|Scales of Judgment"></span> <span class="pill" data-i="3 kişilik parti|3-person party"></span></td><td><span class="ap">415</span> | <span class="dp">495</span></td><td>2455 | 850</td><td>66</td><td>—</td><td class="wrap" data-i="Elion Müridi Nişanı — 186.458 | 0,3|Elion Follower's Mark — 186,458 | 0.3"></td></tr>
+        <tr><td><span data-i="Voidekaia Tapınağı / Olay Ufku|Voidekaia Temple / Event Horizon"></span> — <b>Hadum</b></td><td><span class="ap">420</span> | <span class="dp">505</span></td><td>2570 | 870</td><td>67</td><td>150M</td><td class="wrap" data-i="Boşluğun Kırık Eldiveni — 196.501 | 0,3|Broken Gloves of the Void — 196,501 | 0.3"></td></tr>
+      </tbody>
+    </table>
+    <div class="note" data-i="Öne çıkan droplar (tüm tapınaklar): Origin Shard (WON/BON/JIN/HAN), Nev Parçası, Twilight of the End aksesuar malzemeleri, Broken Vestige (3-4 Milyar). Saatlik gümüş loot scroll'suz tahmindir. Bölge AP/DP değerleri ChaosTurn cheat sheet ile BDFoundry'de birebir aynı çıktı (Yargı Terazisi DP'sinde BDFoundry 500 diyor).|Notable drops (all temples): Origin Shards (WON/BON/JIN/HAN), Nev's Fragment, Twilight of the End accessory mats, Broken Vestige (3-4 billion). Silver/hour is an estimate without loot scrolls. Zone AP/DP matched exactly between the ChaosTurn cheat sheet and BDFoundry (BDFoundry lists 500 DP for Scales of Judgment)."></div>
   </div>
 
   <h2 data-i="Ekleta Aksesuarları — AP/DP ve Pity|Ekleta Accessories — AP/DP &amp; Pity"></h2>
