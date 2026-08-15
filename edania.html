@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edania Rehberi — BDO</title>
+<!--
+  Kaynaklar / Sources:
+  - ChaosTurn — "Edania Part II" cheat sheet (topluluk görseli; sayısal değerlerin ana kaynağı)
+  - https://www.invenglobal.com/articles/24667/edania-part-2-begins-key-highlights-of-the-aug-12-wed-patch (resmi yama özeti)
+  - https://www.invenglobal.com/articles/24660/black-desert-unveils-edania-part-2-featuring-6-new-hunting-grounds
+  Bazı malzeme adları görselden birebir okunamadığı için ≈ ile işaretlendi.
+-->
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#2b3440; --fg:#e6edf3; --dim:#8b949e; --accent:#ffd54a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--fg); font:13.5px/1.5 "Segoe UI", system-ui, sans-serif; }
+  #nav { position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:4px; padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  #nav a { color:var(--fg); text-decoration:none; padding:5px 10px; border-radius:7px; font-size:13px; white-space:nowrap; }
+  #nav a:hover { background:#ffffff12; }
+  #nav a.act { color:var(--accent); font-weight:700; }
+  #nav button { background:#21262d; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:4px 10px; cursor:pointer; font-size:12px; }
+  #nav button:hover { background:#30363d; }
+  #nav button.on { background:#2d5a3d; border-color:#3d7a52; font-weight:700; }
+  main { max-width:1180px; margin:0 auto; padding:16px 14px 40px; }
+  h1 { font-size:19px; margin:10px 0 2px; }
+  h2 { font-size:15.5px; margin:20px 0 8px; color:var(--accent); }
+  .sub { color:var(--dim); font-size:12.5px; margin-bottom:14px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:13px 15px; margin-bottom:14px; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th,td { padding:6px 9px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap; font-size:12.5px; }
+  th { color:var(--dim); font-size:11.5px; font-weight:600; }
+  th:first-child,td:first-child { text-align:left; white-space:normal; }
+  td.b { font-weight:700; color:var(--accent); }
+  .pill { display:inline-block; background:#21262d; border:1px solid var(--line); border-radius:20px; padding:1px 9px; font-size:11px; color:var(--dim); margin:1px 2px 1px 0; }
+  .soon { color:#ffb3b3; font-weight:700; }
+  .ap { color:#ff8a8a; font-weight:700; } .dp { color:#7ad3ff; font-weight:700; } .pity { color:var(--dim); }
+  ul { margin:6px 0; padding-left:20px; } li { margin:3px 0; }
+  .note { color:var(--dim); font-size:12px; margin-top:8px; }
+  footer { color:var(--dim); font-size:11.5px; margin-top:22px; border-top:1px solid var(--line); padding-top:10px; max-width:1180px; margin-left:auto; margin-right:auto; padding-left:14px; padding-right:14px; padding-bottom:30px; }
+  footer a { color:var(--dim); }
+</style>
+<nav id="nav">
+  <a href="index.html">🗺 <span data-i="Harita|Map"></span></a>
+  <a href="enhancement.html">⚒ <span data-i="Geliştirme|Enhancement"></span></a>
+  <a href="fs-cost.html">📈 <span data-i="FS Maliyeti|FS Cost"></span></a>
+  <a href="carrack.html">⛵ Carrack</a>
+  <a href="lifeskill-buffs.html">🧪 <span data-i="Yaşam Becerisi|Lifeskill"></span></a>
+  <a href="edania.html" class="act">🏛 Edania</a>
+  <span style="flex:1"></span>
+  <button id="lang-tr">TR</button><button id="lang-en">EN</button>
+</nav>
+<main>
+  <h1 data-i="Edania Part 2 Rehberi|Edania Part 2 Guide"></h1>
+  <div class="sub" data-i="Yeni bölge boss'ları, kasılma alanları, Ekleta &amp; Apeiron aksesuarları, kristaller ve craft tarifleri — 12 Ağustos yamasl (MENA).|New zone bosses, grind spots, Ekleta &amp; Apeiron accessories, crystals and crafting recipes — Aug 12 patch (MENA)."></div>
+
+  <h2 data-i="Tapınak Boss'ları ve Kasılma Alanları|Temple Bosses &amp; Grind Spots"></h2>
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th data-i="Boss · Bölge|Boss · Zone"></th>
+        <th data-i="Önerilen AP|DP|Recommended AP|DP"></th>
+        <th data-i="Canavar Lv|Monster Lv"></th>
+        <th data-i="Saatlik gümüş ≈|Silver/hour ≈"></th>
+        <th data-i="Çöp loot (adet | LT)|Trash loot (each | LT)"></th>
+        <th data-i="Boss ödülü|Boss reward"></th>
+        <th data-i="Gerekli CC|CC needed"></th>
+      </tr></thead>
+      <tbody>
+        <tr><td><b>Agris</b> — <span data-i="Aphrodon Tapınağı|Temple of Aphrodon"></span></td><td><span class="ap">405</span> | <span class="dp">485</span></td><td>66</td><td>110M</td><td>155.127 | 0,3</td><td data-i="3.000M gümüş veya 3-8 + 1-5 malzeme|3,000M silver or 3-8 + 1-5 mats"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
+        <tr><td><b>Markthanan</b> — <span data-i="Hermesia Tapınağı|Temple of Hermesia"></span></td><td><span class="ap">410</span> | <span class="dp">490</span></td><td>66</td><td>120M</td><td>160.539 | 0,3</td><td data-i="3.100M gümüş veya 3-8 + 1-5 malzeme|3,100M silver or 3-8 + 1-5 mats"></td><td data-i="Geri İtme, Havaya Kaldırma|Knockback, Float"></td></tr>
+        <tr><td><b>Elion</b> — <span data-i="Magaia Tapınağı|Temple of Magaia"></span></td><td><span class="ap">415</span> | <span class="dp">495</span></td><td>66</td><td>130M</td><td>160.539 | 0,3</td><td data-i="3.200M gümüş veya 3-8 + 1-5 malzeme|3,200M silver or 3-8 + 1-5 mats"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
+        <tr><td><b>Aal</b> — <span data-i="Aresion Tapınağı|Temple of Aresion"></span></td><td><span class="ap">420</span> | <span class="dp">505</span></td><td>66</td><td>140M</td><td>182.049 | 0,3</td><td data-i="3.300M gümüş veya 3-8 + 1-5 malzeme|3,300M silver or 3-8 + 1-5 mats"></td><td data-i="Yere Serme, Bağlama|Knockdown, Bound"></td></tr>
+        <tr><td><b>Hadum</b> — <span data-i="Voidekaia Tapınağı|Temple of Voidekaia"></span> <span class="soon" data-i="(17 Eylül'de geliyor)|(coming Sept 17)"></span></td><td><span class="ap">425</span> | <span class="dp">510</span></td><td>67</td><td>150M</td><td>196.501 | 0,3</td><td data-i="4.000M gümüş veya 3-8 + 1-3 + 1-3 malzeme|4,000M silver or 3-8 + 1-3 + 1-3 mats"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
+        <tr><td><span data-i="Yargı Terazisi|Scales of Judgment"></span> <span class="pill" data-i="3 kişilik parti alanı|3-person party spot"></span></td><td><span class="ap">415</span> | <span class="dp">495</span></td><td>66</td><td>—</td><td>186.458 | 0,3</td><td data-i="3.200M gümüş veya 3-8 + 1-5 malzeme|3,200M silver or 3-8 + 1-5 mats"></td><td data-i="Sersemletme, Katılaşma, Dondurma|Stun, Stiffness, Freeze"></td></tr>
+      </tbody>
+    </table>
+    <div class="note" data-i="Boss'lar düşük ihtimalle aksesuar/nadir malzeme de düşürür. Saatlik gümüş değerleri cheat sheet tahminidir; loot scroll'suz taban değerlerdir.|Bosses also drop accessories/rare mats at low probability. Silver/hour figures are cheat sheet estimates; base values without loot scrolls."></div>
+  </div>
+
+  <h2 data-i="Ekleta Aksesuarları — AP/DP ve Pity|Ekleta Accessories — AP/DP &amp; Pity"></h2>
+  <div class="card">
+    <table>
+      <thead><tr><th></th><th>0</th><th>I</th><th>II</th><th>III</th><th>IV</th><th>V</th><th>VI</th><th>VII</th><th>VIII</th><th>IX</th><th>X</th></tr></thead>
+      <tbody>
+        <tr><td class="pity" data-i="Pity (başarısızlık)|Pity (fails)"></td><td>—</td><td class="pity">7</td><td class="pity">7</td><td class="pity">8</td><td class="pity">9</td><td class="pity">10</td><td class="pity">12</td><td class="pity">14</td><td class="pity">16</td><td class="pity">20</td><td class="pity">30</td></tr>
+        <tr><td data-i="Küpe (AP)|Earring (AP)"></td><td class="ap">21</td><td class="ap">22</td><td class="ap">22</td><td class="ap">23</td><td class="ap">23</td><td class="ap">24</td><td class="ap">24</td><td class="ap">25</td><td class="ap">26</td><td class="ap">27</td><td class="ap">28</td></tr>
+        <tr><td data-i="Yüzük (AP)|Ring (AP)"></td><td class="ap">25</td><td class="ap">26</td><td class="ap">26</td><td class="ap">27</td><td class="ap">27</td><td class="ap">28</td><td class="ap">28</td><td class="ap">29</td><td class="ap">30</td><td class="ap">31</td><td class="ap">32</td></tr>
+        <tr><td data-i="Kolye (AP)*|Necklace (AP)*"></td><td class="ap">25</td><td class="ap">26</td><td class="ap">26</td><td class="ap">27</td><td class="ap">27</td><td class="ap">28</td><td class="ap">28</td><td class="ap">29</td><td class="ap">30</td><td class="ap">31</td><td class="ap">32</td></tr>
+        <tr><td data-i="Kemer (AP)|Belt (AP)"></td><td class="ap">43</td><td class="ap">44</td><td class="ap">44</td><td class="ap">45</td><td class="ap">45</td><td class="ap">46</td><td class="ap">46</td><td class="ap">47</td><td class="ap">48</td><td class="ap">49</td><td class="ap">50</td></tr>
+        <tr><td data-i="Hepsinde DP|DP (all)"></td><td class="dp">1</td><td class="dp">1</td><td class="dp">2</td><td class="dp">2</td><td class="dp">3</td><td class="dp">3</td><td class="dp">4</td><td class="dp">4</td><td class="dp">4</td><td class="dp">5</td><td class="dp">6</td></tr>
+      </tbody>
+    </table>
+    <div class="note" data-i="* Baz Ekleta kolyesi +1 AP verir. Slot adları görsel ikonlarından yorumlandı (≈). Geliştirme şans/maliyet hesabı için Geliştirme sayfasındaki 'Ekleta' hattını kullan.|* Base Ekleta necklace gives +1 AP. Slot names interpreted from icons (≈). For enhance chance/cost use the 'Ekleta' line on the Enhancement page."></div>
+  </div>
+
+  <h2 data-i="Apeiron Aksesuarları — AP/DP ve Pity|Apeiron Accessories — AP/DP &amp; Pity"></h2>
+  <div class="card">
+    <table>
+      <thead><tr><th></th><th>0</th><th>I</th><th>II</th><th>III</th><th>IV</th><th>V</th><th>VI</th><th>VII</th><th>VIII</th><th>IX</th><th>X</th></tr></thead>
+      <tbody>
+        <tr><td class="pity" data-i="Pity (başarısızlık)|Pity (fails)"></td><td>—</td><td class="pity">9</td><td class="pity">9</td><td class="pity">10</td><td class="pity">10</td><td class="pity">11</td><td class="pity">12</td><td class="pity">13</td><td class="pity">15</td><td class="pity">17</td><td class="pity">27</td></tr>
+        <tr><td data-i="Küpe (AP)|Earring (AP)"></td><td class="ap">14</td><td class="ap">17</td><td class="ap">19</td><td class="ap">20</td><td class="ap">21</td><td class="ap">22</td><td class="ap">23</td><td class="ap">24</td><td class="ap">26</td><td class="ap">27</td><td class="ap">28</td></tr>
+        <tr><td data-i="Yüzük (AP)|Ring (AP)"></td><td class="ap">16</td><td class="ap">21</td><td class="ap">23</td><td class="ap">24</td><td class="ap">25</td><td class="ap">26</td><td class="ap">27</td><td class="ap">28</td><td class="ap">30</td><td class="ap">31</td><td class="ap">32</td></tr>
+        <tr><td data-i="Kolye (AP)|Necklace (AP)"></td><td class="ap">16</td><td class="ap">21</td><td class="ap">23</td><td class="ap">24</td><td class="ap">25</td><td class="ap">26</td><td class="ap">27</td><td class="ap">28</td><td class="ap">30</td><td class="ap">31</td><td class="ap">32</td></tr>
+        <tr><td data-i="Kemer (AP) ≈|Belt (AP) ≈"></td><td class="ap">24</td><td class="ap">34</td><td class="ap">38</td><td class="ap">40</td><td class="ap">42</td><td class="ap">45</td><td class="ap">46</td><td class="ap">47</td><td class="ap">48</td><td class="ap">49</td><td class="ap">50</td></tr>
+        <tr><td data-i="Hepsinde DP|DP (all)"></td><td class="dp">0</td><td class="dp">0</td><td class="dp">0</td><td class="dp">0</td><td class="dp">2</td><td class="dp">3</td><td class="dp">4</td><td class="dp">4</td><td class="dp">5</td><td class="dp">6</td><td class="dp">6</td></tr>
+      </tbody>
+    </table>
+    <div class="note" data-i="Ekleta ile Apeiron X seviyede aynı statlara ulaşır; farkları ediniliş yolu ve geliştirme malzemesidir (Apeiron başlangıçta daha düşük, sona doğru eşitlenir). Hesap için Geliştirme sayfasındaki 'Apeiron' hattı.|Ekleta and Apeiron reach identical stats at X; they differ in acquisition and enhance materials (Apeiron starts lower, catches up). Use the 'Apeiron' line on the Enhancement page."></div>
+  </div>
+
+  <h2 data-i="Craft Tarifleri|Crafting Recipes"></h2>
+  <div class="card">
+    <ul>
+      <li data-i="Ekleta aksesuarı: 5× baz aksesuar parçası + 10× Genesis Pigmenti ≈ + 10× yeşil malzeme ≈ + 10× gümüş malzeme ≈|Ekleta accessory: 5× base accessory piece + 10× Pigment of Genesis ≈ + 10× green mat ≈ + 10× silver mat ≈"></li>
+      <li data-i="Apeiron aksesuarı: 10× baz parça + 10× Genesis Pigmenti ≈ + 10× yeşil malzeme ≈ + 5× özel malzeme ≈|Apeiron accessory: 10× base piece + 10× Pigment of Genesis ≈ + 10× green mat ≈ + 5× special mat ≈"></li>
+      <li data-i="Ekleta IX kolye → dönüşüm: (+0 AP +0 DP); ikinci dönüşüm (+1 AP +3 DP) — görseldeki dönüşüm notu|Ekleta IX necklace → conversion: (+0 AP +0 DP); second conversion (+1 AP +3 DP) — conversion note from the sheet"></li>
+    </ul>
+    <div class="note" data-i="≈ işaretli malzeme adları görsel ikonlarından tam okunamıyor — oyunda gördüğün adları söylersen birebir düzeltirim.|Names marked ≈ can't be fully read from icons — tell me the exact in-game names and I'll correct them."></div>
+  </div>
+
+  <h2 data-i="Yeni Edania Kristalleri|New Edania Crystals"></h2>
+  <div class="card">
+    <table>
+      <thead><tr><th data-i="Tarif (3× 100 malzeme)|Recipe (3× 100 mats)"></th><th data-i="Etki|Effect"></th></tr></thead>
+      <tbody>
+        <tr><td data-i="100 kırmızı + 100 sarı + 100 yeşil (kademe 1)|100 red + 100 yellow + 100 green (tier 1)"></td><td data-i="Edania ırkına +90 hasar · Canavar DR +20|Edania race damage +90 · Monster DR +20"></td></tr>
+        <tr><td data-i="Kademe 2 tarifi|Tier 2 recipe"></td><td data-i="Edania ırkına +120 · Canavar DR +20|Edania race +120 · Monster DR +20"></td></tr>
+        <tr><td data-i="Kademe 3 tarifi|Tier 3 recipe"></td><td data-i="Edania ırkına +150 · Canavar DR +20|Edania race +150 · Monster DR +20"></td></tr>
+        <tr><td data-i="Kademe 4 tarifi|Tier 4 recipe"></td><td data-i="Edania ırkına +180 · Canavar DR +20|Edania race +180 · Monster DR +20"></td></tr>
+        <tr><td data-i="1 + 30 + 100 + 300 + 500 karışım tarifi|1 + 30 + 100 + 300 + 500 mixed recipe"></td><td data-i="Canavar AP +10 · Arkadan Saldırı +%1,5|Monster AP +10 · Back Attack +1.5%"></td></tr>
+        <tr><td data-i="5 + 30 + 100 + 100 + 200 karışım tarifi|5 + 30 + 100 + 100 + 200 mixed recipe"></td><td data-i="Örn. AP+3 kristali → AP+5'e yükseltme|Ex. upgrades AP+3 crystal → AP+5"></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 data-i="Godslayer Ünvanı &amp; Yaşam Becerisi Eşyası|Godslayer Title &amp; Lifeskill Item"></h2>
+  <div class="card">
+    <ul>
+      <li data-i="Godslayer ünvanı: her boss'un malzemesinden (Inix Kıvılcımı ≈) 100'er adet biriktirip kutularla takas et — 4 × 100.|Godslayer title: collect 100 of each boss material (Inix's Spark ≈) and exchange for boxes — 4 × 100."></li>
+      <li data-i="Yaşam becerisi eşyası (100+100+100 tarif): Yaşam Becerisi Ustalığı +25 · Yaşam Becerisi EXP +%15 · Toplama eşya düşürme +%3 · İşleme başarısı +%10 · Binek EXP +%5|Lifeskill item (100+100+100 recipe): Life Skill Mastery +25 · Life Skill EXP +15% · Gathering item drop +3% · Processing success +10% · Mount EXP +5%"></li>
+      <li data-i="Ek takaslar: 200× malzeme → 1× ve 20× → 1× dönüşümleri mevcut (görsel sağ alt).|Extra exchanges: 200× mat → 1× and 20× → 1× conversions exist (sheet bottom right)."></li>
+      <li data-i="Maks. seviye artık 70 (7 Ekim sonrası 75 planlı).|Max level is now 70 (75 planned after Oct 7)."></li>
+    </ul>
+  </div>
+</main>
+<footer>
+  <span data-i="Kaynaklar: ChaosTurn — Edania Part II cheat sheet · Inven Global yama notları · © Pearl Abyss|Sources: ChaosTurn — Edania Part II cheat sheet · Inven Global patch notes · © Pearl Abyss"></span>
+  · <a href="https://www.invenglobal.com/articles/24667/edania-part-2-begins-key-highlights-of-the-aug-12-wed-patch" target="_blank" rel="noopener">Inven Global</a>
+</footer>
+<script>
+let lang='tr';
+try{const s=localStorage.getItem('bdo_tachyon_lang');if(s==='en'||s==='tr')lang=s;}catch(e){}
+function apply(){
+  document.documentElement.lang=lang;
+  document.title=lang==='en'?'Edania Guide — BDO':'Edania Rehberi — BDO';
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const parts=el.getAttribute('data-i').split('|');
+    // "Önerilen AP|DP|Recommended AP|DP" gibi içinde | geçenler: ortadan böl
+    const mid=Math.floor(parts.length/2);
+    el.innerHTML=lang==='en'?parts.slice(mid).join('|'):parts.slice(0,mid).join('|');
+  });
+  document.getElementById('lang-tr').classList.toggle('on',lang==='tr');
+  document.getElementById('lang-en').classList.toggle('on',lang==='en');
+}
+document.getElementById('lang-tr').onclick=()=>{lang='tr';try{localStorage.setItem('bdo_tachyon_lang','tr');}catch(e){}apply();};
+document.getElementById('lang-en').onclick=()=>{lang='en';try{localStorage.setItem('bdo_tachyon_lang','en');}catch(e){}apply();};
+apply();
+</script>
+</html>
