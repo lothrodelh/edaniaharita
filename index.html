@@ -2,9 +2,9 @@
 <html lang="tr">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Edania — Tachyon'un İzi · Mirası (Türkçe İnteraktif Harita)</title>
+<title>Edania — Tachyon Haritası / Tachyon Map</title>
 <!--
-  Türkçe uyarlama — orijinal harita: korbdo.co.kr (검통디) Edania2 Tachyon haritası.
+  TR/EN uyarlama — orijinal harita: korbdo.co.kr (검통디) Edania2 Tachyon haritası.
   Harita karoları ve marker görselleri korbdo.co.kr sunucusundan yüklenir.
   Görsellerin kaynağı: 검은사막 인벤 — 카나트 (Kanat). Oyun içeriği © Pearl Abyss.
 -->
@@ -36,6 +36,7 @@
   .dot { width:10px; height:10px; border-radius:50%; flex:none; box-shadow:0 0 0 1.5px #0009; }
   .layer .nm { flex:1; }
   .layer .ct { color:var(--dim); font-variant-numeric:tabular-nums; font-size:11px; }
+  #hidefound-row { margin-top:6px; padding-top:8px; border-top:1px solid var(--line); }
   #prog { margin-top:8px; padding-top:8px; border-top:1px solid var(--line); font-size:12px; color:var(--dim); font-variant-numeric:tabular-nums; }
   #prog b { color:var(--fg); }
   #prog .prog-h { color:var(--fg); font-weight:700; margin-bottom:4px; }
@@ -48,7 +49,9 @@
   button { flex:1; background:#21262d; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px 8px; cursor:pointer; font-size:12px; font-family:inherit; }
   button:hover { background:#30363d; }
   button.on { background:#2d5a3d; border-color:#3d7a52; }
-  #btn-fs { position:absolute; top:12px; right:12px; z-index:4; flex:none; width:auto; padding:7px 12px; background:#161b22e6; backdrop-filter:blur(8px); border-radius:8px; }
+  #topbar { position:absolute; top:12px; right:12px; z-index:4; display:flex; gap:6px; }
+  #topbar button { flex:none; width:auto; padding:7px 12px; background:#161b22e6; backdrop-filter:blur(8px); border-radius:8px; }
+  #topbar button.lang.on { background:#2d5a3d; border-color:#3d7a52; font-weight:700; }
   #credit { position:absolute; right:12px; bottom:10px; z-index:3; font-size:10.5px; color:#9aa6b2; text-shadow:0 1px 3px #000c; pointer-events:none; }
   #tip { position:absolute; pointer-events:none; padding:6px 9px; font-size:12px; background:#0d1117f2; border:1px solid var(--line); border-radius:7px; display:none; white-space:nowrap; z-index:5; }
   #tip .k, .k { color:var(--dim); font-size:11px; }
@@ -57,6 +60,7 @@
   #sel .sel-coin { display:flex; align-items:center; gap:5px; color:var(--fg); font-size:12px; }
   #sel .sel-coin .prog-coin-ic { width:14px; height:14px; }
   #sel .sel-area { margin-top:3px; }
+  #sel .hint { margin-top:5px; font-size:10.5px; color:var(--dim); }
   #toast { left:50%; bottom:26px; transform:translateX(-50%); padding:8px 14px; font-size:12.5px; opacity:0; transition:opacity .25s; pointer-events:none; }
   #sel-imgs { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 2px; }
   #sel-imgs:empty { display:none; }
@@ -75,21 +79,26 @@
   #lb #lb-credit { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); color:#b9c2cc; font-size:11.5px; text-shadow:0 1px 3px #000c; }
 </style>
 <canvas id="map"></canvas>
-<button id="btn-fs" title="Tam ekran">⛶ Tam Ekran</button>
+<div id="topbar">
+  <button class="lang" id="lang-tr">TR</button>
+  <button class="lang" id="lang-en">EN</button>
+  <button id="btn-fs">⛶</button>
+</div>
 <div id="ui" class="panel collapsed">
-  <h1 id="ui-head">Edania — Tachyon Haritası <span id="ui-caret">Genişlet</span></h1>
-  <input id="q" placeholder="Ara — Miras 46 · İz XLVI vb." autocomplete="off">
+  <h1 id="ui-head"><span id="ui-title">Edania — Tachyon Haritası</span> <span id="ui-caret">Genişlet</span></h1>
+  <input id="q" placeholder="" autocomplete="off">
   <div id="hits"></div>
   <div id="ui-body">
     <div id="layers"></div>
+    <label class="layer" id="hidefound-row"><input type="checkbox" id="hide-found"><span class="nm" id="hidefound-label"></span></label>
     <div id="prog"></div>
     <div class="row">
-      <button id="btn-fit">Tümünü Gör</button>
-      <button id="btn-reset">Sıfırla</button>
+      <button id="btn-fit"></button>
+      <button id="btn-reset"></button>
     </div>
     <div class="row">
-      <button id="btn-export">Kaydet</button>
-      <button id="btn-import">Yükle</button>
+      <button id="btn-export"></button>
+      <button id="btn-import"></button>
     </div>
     <input id="file-import" type="file" hidden>
   </div>
@@ -99,6 +108,7 @@
   <div class="k" id="sel-s"></div>
   <div id="sel-imgs"></div>
   <div class="row"><button id="sel-done"></button></div>
+  <div class="hint" id="sel-hint"></div>
 </div>
 <div id="tip"></div>
 <div id="toast" class="panel"></div>
@@ -110,16 +120,37 @@
   <img id="lb-img" alt="">
   <button class="nav" id="lb-next">›</button>
   <div id="lb-count"></div>
-  <div id="lb-credit">Görsel kaynağı: 검은사막 인벤 — Kanat</div>
+  <div id="lb-credit">Görsel kaynağı / Image source: 검은사막 인벤 — Kanat</div>
 </div>
 <script>
-// ── Veri (korbdo.co.kr Edania2 verisinden Türkçeleştirildi; kaynak: regionclientdata_kr_.xml, istemci 5161)
+// ── Veri / Data (korbdo.co.kr Edania2; kaynak: regionclientdata_kr_.xml, istemci 5161)
 window.TILES={"128":["45_17","45_18","45_19","45_20","45_21","45_22","45_23","45_24","45_25","45_26","45_27","45_28","46_18","46_19","46_20","46_21","46_22","46_23","46_24","46_25","46_26","46_27","46_28","47_18","47_19","47_20","47_21","47_22","47_23","47_24","47_25","47_26","47_27","47_28","48_18","48_19","48_20","48_21","48_22","48_23","48_24","48_25","48_26","48_27","48_28","49_18","49_19","49_20","49_21","49_22","49_23","49_24","49_25","49_26","49_27","49_28","50_18","50_19","50_20","50_21","50_22","50_23","50_24","50_25","50_26","50_27","50_28","51_18","51_19","51_20","51_21","51_22","51_23","51_24","51_25","51_26","51_27","51_28","52_18","52_19","52_20","52_21","52_22","52_23","52_24","52_25","52_26","52_27","52_28","53_18","53_19","53_20","53_21","53_22","53_23","53_24","53_25","53_26","53_27","53_28","54_18","54_19","54_20","54_21","54_22","54_23","54_24","54_25","54_26","54_27","54_28","55_18","55_19","55_20","55_21","55_22","55_23","55_24","55_25","55_26","55_27","55_28","56_18","56_19","56_20","56_21","56_22","56_23","56_24","56_25","56_26","56_27","56_28","57_18","57_19","57_20","57_21","57_22","57_23","57_24","57_25","57_26","57_27","57_28","58_18","58_19","58_20","58_21","58_22","58_23","58_24","58_25","58_26","58_27","58_28","59_18","59_19","59_20","59_21","59_22","59_23","59_24","59_25","59_26","59_27","59_28"],"16":["5_2","5_3","6_2","6_3","7_2","7_3"],"32":["11_4","11_5","11_6","11_7","12_4","12_5","12_6","12_7","13_4","13_5","13_6","13_7","14_4","14_5","14_6","14_7"],"64":["22_10","22_11","22_12","22_13","22_14","22_8","22_9","23_10","23_11","23_12","23_13","23_14","23_8","23_9","24_10","24_11","24_12","24_13","24_14","24_8","24_9","25_10","25_11","25_12","25_13","25_14","25_8","25_9","26_10","26_11","26_12","26_13","26_14","26_8","26_9","27_10","27_11","27_12","27_13","27_14","27_8","27_9","28_10","28_11","28_12","28_13","28_14","28_8","28_9","29_10","29_11","29_12","29_13","29_14","29_8","29_9"]};
 
-// Bölge adları (Türkçe topluluk çevirisi)
-const AREA=["Aphrodon Tapınağı","Abeona Dağı","Aresion Tapınağı","Mikale Sırtı","Aigal Dağları","Dirpidan Dağı","Magaia Tapınağı","Tarsis Dağları","Anemoi Dağları","Vulkanoid","Emesia İç Kalesi","Savrulmuş Kaos","Yığışımın Yolu","Olay Ufku","Felaketin Başlangıcı","Horai'nin Ağzı","Sonlanma Şoku Bölgesi","Yargı Terazisi","Auris Kıyısı","Alhena Adası","Angabu Karakolu"];
+// Bölge adları / Area names [TR, EN]
+const AREA=[
+["Aphrodon Tapınağı","Aphrodon Temple"],
+["Abeona Dağı","Mount Abeona"],
+["Aresion Tapınağı","Aresion Temple"],
+["Mikale Sırtı","Mikale Ridge"],
+["Aigal Dağları","Aigal Mountains"],
+["Dirpidan Dağı","Mount Dirpidan"],
+["Magaia Tapınağı","Magaia Temple"],
+["Tarsis Dağları","Tarsis Mountains"],
+["Anemoi Dağları","Anemoi Mountains"],
+["Vulkanoid","Vulcanoid"],
+["Emesia İç Kalesi","Emesia Inner Castle"],
+["Savrulmuş Kaos","Swept Chaos"],
+["Yığışımın Yolu","Guidance of Accretion"],
+["Olay Ufku","Event Horizon"],
+["Felaketin Başlangıcı","Prelude to Ruin"],
+["Horai'nin Ağzı","Horai's Mouth"],
+["Sonlanma Şoku Bölgesi","Termination Shock Zone"],
+["Yargı Terazisi","Scales of Judgment"],
+["Auris Kıyısı","Auris Coast"],
+["Alhena Adası","Alhena Island"],
+["Angabu Karakolu","Angabu Outpost"]];
 
-// Tachyon'un Mirası — [x, z, num, bölge]
+// Tachyon'un Mirası / Tachyon's Legacy — [x, z, num, bölge/area]
 const RELIC=[
 [1186200,754538,1,0],[1198350,764938,2,0],[1184710,801340,3,0],[1200650,793038,4,0],[1171800,753478,5,1],
 [1143620,825431,6,0],[1142690,807556,7,0],[1162650,777672,8,0],[1146340,765141,9,1],[1171480,773297,10,0],
@@ -140,7 +171,7 @@ const RELIC=[
 [881272,721960,81,7],[875029,683059,82,7],[876092,675160,83,7],[859997,668887,84,13],[907402,693483,85,7],
 [921236,672316,86,6],[911970,680173,87,7],[861591,658794,88,13],[867349,653789,89,13],[869262,662519,90,13]];
 
-// Tachyon'un İzi — [x, z, num, bölge]
+// Tachyon'un İzi / Tachyon's Trace — [x, z, num, bölge/area]
 const TRACE=[
 [1161020,747180,1,1],[1189330,721636,2,1],[1118520,751713,3,1],[1157660,839844,4,0],[1163230,697405,5,20],
 [1189350,780403,6,0],[1162370,761878,7,1],[1156090,718157,8,1],[1145790,746076,9,1],[1201900,722189,10,19],
@@ -154,156 +185,208 @@ const TRACE=[
 [779813,585026,66,14],[851389,608685,67,11],[942110,604140,68,16],[901639,590858,69,12],[945480,642634,70,12],
 [880673,693956,76,7],[917432,687693,77,7],[794283,704920,78,15],[865036,692701,79,7],[904898,678055,80,7],
 [898096,693390,81,7],[845340,677080,82,13],[906504,659035,83,12],[828213,695066,84,13],[786942,683040,85,15]];
-// Numarasız özel iz noktası (Gigagod)
-const TRACE_EXTRA={x:787815,z:637189,n:"Gigagod İzi",a:AREA[14]};
+// Numarasız özel iz / Special unnumbered trace (Gigagod)
+const TRACE_EXTRA={x:787815,z:637189,area:14};
 
-// Bilgi noktaları — [x, z, Türkçe ad, görsel klasör öneki (orijinal Korece)]
+// Bilgi / Knowledge — [x, z, TR ad, EN ad, görsel klasör öneki (orijinal Korece)]
 const KLORE=[
-[1059420,817570,"Zarifçe Süslenmiş Cam Pencere","26. 정교하게 장식된 유리 창"],
-[1061460,856683,"Gezginin Ardı","24. 방랑의 뒷모습"],
-[954733,728664,"Lütfun Aktığı Şelale","2. 은총이 흐르는 폭포"],
-[955844,743799,"Magaia'nın Parmaklıkları","27. 마가이아의 창살"],
-[885789,741788,"Aresion'un Lavları","16. 아레시온의 용암"],
-[725704,816831,"Canavarın Feryadı","15. 마물의 울음소리"],
-[714371,823394,"Edania Kıyısı","14. 에다니아의 해안"],
-[906180,805674,"Lav ile Denizin Buluştuğu Yer","17. 용암과 바다가 만나는 곳"],
-[848566,604884,"Tekilliğin Görünümü","21. 특이점의 모습"],
-[842903,606908,"Yalnızca Boşluğun Kaldığı Yer I","20. 공허만이 남은 장소 I"],
-[1023150,612044,"Adalete Giden Yol","28. 정의로 향하는 길"],
-[939053,605219,"Kesişim Noktası","19. 교차하는 지점"],
-[967413,747238,"Terazi Şelalesi","1. 천칭 폭포"],
-[1093190,781151,"Vulkanoid'den Görünen Kale","25. 벌카이노드에서 바라본 성"],
-[1094750,749932,"Habercinin Rüzgârı","23. 전령의 바람"],
-[1141780,801607,"Köklerin Taşıdığı Mağara","4. 뿌리가 지지하는 동굴"],
-[1098290,658750,"Terk Edilmiş Sunak","10. 발길이 끊긴 제단"],
-[1134120,675390,"Karakola Akan Göl","13. 전초기지로 흐르는 호수"],
-[1195690,644762,"Kıyıyı Gören Uçurum","11. 해안가가 보이는 절벽"],
-[1190370,641498,"Auris Kıyısındaki Deniz Mağarası","9. 아우리스 해안의 해식 동굴"],
-[1054910,630494,"Denize Dökülen Şelale","3. 바다로 향하는 폭포"],
-[1022810,802272,"Surlardan Görünen Manzara","22. 성벽에서 바라 본 풍경"],
-[1187570,655571,"Denize Bakan Şelale","12. 바다를 바라보는 폭포"],
-[889761,625400,"Yalnızca Boşluğun Kaldığı Yer II","18. 공허만이 남은 장소 II"],
-[1204000,779531,"Akan Bereket","8. 흘러내리는 풍요"],
-[1152500,774209,"Aphrodon Şelalesi","6. 아프로돈 폭포"],
-[1178550,789203,"Ezgiyle Dolan Rüzgâr","5. 곡향이 스며든 바람"]];
+[1059420,817570,"Zarifçe Süslenmiş Cam Pencere","Elaborately Decorated Glass Window","26. 정교하게 장식된 유리 창"],
+[1061460,856683,"Gezginin Ardı","The Wanderer's Back","24. 방랑의 뒷모습"],
+[954733,728664,"Lütfun Aktığı Şelale","Waterfall of Grace","2. 은총이 흐르는 폭포"],
+[955844,743799,"Magaia'nın Parmaklıkları","Magaia's Bars","27. 마가이아의 창살"],
+[885789,741788,"Aresion'un Lavları","Aresion's Lava","16. 아레시온의 용암"],
+[725704,816831,"Canavarın Feryadı","Cry of the Monsters","15. 마물의 울음소리"],
+[714371,823394,"Edania Kıyısı","Coast of Edania","14. 에다니아의 해안"],
+[906180,805674,"Lav ile Denizin Buluştuğu Yer","Where Lava Meets the Sea","17. 용암과 바다가 만나는 곳"],
+[848566,604884,"Tekilliğin Görünümü","Sight of the Singularity","21. 특이점의 모습"],
+[842903,606908,"Yalnızca Boşluğun Kaldığı Yer I","A Place Where Only Void Remains I","20. 공허만이 남은 장소 I"],
+[1023150,612044,"Adalete Giden Yol","Road to Justice","28. 정의로 향하는 길"],
+[939053,605219,"Kesişim Noktası","Point of Intersection","19. 교차하는 지점"],
+[967413,747238,"Terazi Şelalesi","Scales Waterfall","1. 천칭 폭포"],
+[1093190,781151,"Vulkanoid'den Görünen Kale","Castle Seen from the Vulcanoid","25. 벌카이노드에서 바라본 성"],
+[1094750,749932,"Habercinin Rüzgârı","Herald's Wind","23. 전령의 바람"],
+[1141780,801607,"Köklerin Taşıdığı Mağara","Cave Held by Roots","4. 뿌리가 지지하는 동굴"],
+[1098290,658750,"Terk Edilmiş Sunak","Forsaken Altar","10. 발길이 끊긴 제단"],
+[1134120,675390,"Karakola Akan Göl","Lake Flowing to the Outpost","13. 전초기지로 흐르는 호수"],
+[1195690,644762,"Kıyıyı Gören Uçurum","Cliff Overlooking the Coast","11. 해안가가 보이는 절벽"],
+[1190370,641498,"Auris Kıyısındaki Deniz Mağarası","Sea Cave of the Auris Coast","9. 아우리스 해안의 해식 동굴"],
+[1054910,630494,"Denize Dökülen Şelale","Waterfall Heading to the Sea","3. 바다로 향하는 폭포"],
+[1022810,802272,"Surlardan Görünen Manzara","View from the Ramparts","22. 성벽에서 바라 본 풍경"],
+[1187570,655571,"Denize Bakan Şelale","Waterfall Facing the Sea","12. 바다를 바라보는 폭포"],
+[889761,625400,"Yalnızca Boşluğun Kaldığı Yer II","A Place Where Only Void Remains II","18. 공허만이 남은 장소 II"],
+[1204000,779531,"Akan Bereket","Flowing Abundance","8. 흘러내리는 풍요"],
+[1152500,774209,"Aphrodon Şelalesi","Aphrodon Falls","6. 아프로돈 폭포"],
+[1178550,789203,"Ezgiyle Dolan Rüzgâr","Wind Steeped in Melody","5. 곡향이 스며든 바람"]];
 
-// Bölge Yöneticileri — [x, z, "Ad — Bölge"]
+// Bölge Yöneticileri / Node Managers — [x, z, TR, EN]
 const NODE=[
-[1251930,732845,"Amanu — Alhena Adası"],
-[1184080,779366,"Aphrodon'un Tahtı — Aphrodon Tapınağı"],
-[1044900,834896,"Emesia'nın Tahtı — Emesia İç Kalesi"],
-[866337,780306,"Aresion'un Tahtı — Aresion Tapınağı"],
-[750949,771272,"Abene — Epeiros Dağları"],
-[715248,790842,"Loran — Kaya Şahini Karakolu"],
-[797464,807935,"Sed — Aigal Dağları"],
-[732621,834491,"Meirin — Siunion Kıyısı"],
-[929149,780456,"Dua Eden Mürit — Mikale Sırtı"],
-[888819,709651,"Luminita — Tarsis Dağları"],
-[792918,735671,"Saruka — Dirpidan Dağı"],
-[771797,685271,"Biruko — Horai'nin Ağzı"],
-[779822,601861,"Zandor — Felaketin Başlangıcı"],
-[844693,575137,"Evelina — Savrulmuş Kaos"],
-[845964,653404,"Boidekea'nın Tahtı — Olay Ufku"],
-[913686,617906,"Sepu — Yığışımın Yolu"],
-[1011320,621274,"Owen — Sonlanma Şoku Bölgesi"],
-[1052410,692737,"Kato — Anemoi Dağları"],
-[1091510,756320,"Kırık Kara Kristal — Vulkanoid"],
-[1148450,741902,"Senika — Abeona Dağı"],
-[1040480,648758,"Intikar — Fısıldayan Hatıra"],
-[1134520,680121,"Alustin — Angabu Karakolu"],
-[931334,832538,"Kırık Heykel — Yargı Terazisi"],
-[1212590,639853,"Banika — Rodosion Adası"],
-[1147550,649777,"Cecil — Parlayan Topraklar"],
-[1195230,656132,"Eron — Auris Kıyısı"],
-[957243,702359,"Magaia'nın Tahtı — Magaia Tapınağı"]];
+[1251930,732845,"Amanu — Alhena Adası","Amanu — Alhena Island"],
+[1184080,779366,"Aphrodon'un Tahtı — Aphrodon Tapınağı","Throne of Aphrodon — Aphrodon Temple"],
+[1044900,834896,"Emesia'nın Tahtı — Emesia İç Kalesi","Throne of Emesia — Emesia Inner Castle"],
+[866337,780306,"Aresion'un Tahtı — Aresion Tapınağı","Throne of Aresion — Aresion Temple"],
+[750949,771272,"Abene — Epeiros Dağları","Abene — Epheiros Mountains"],
+[715248,790842,"Loran — Kaya Şahini Karakolu","Loran — Rock Hawk Post"],
+[797464,807935,"Sed — Aigal Dağları","Sed — Aigal Mountains"],
+[732621,834491,"Meirin — Siunion Kıyısı","Meirin — Siunion Coast"],
+[929149,780456,"Dua Eden Mürit — Mikale Sırtı","Praying Devotee — Mikale Ridge"],
+[888819,709651,"Luminita — Tarsis Dağları","Luminita — Tarsis Mountains"],
+[792918,735671,"Saruka — Dirpidan Dağı","Saruka — Mount Dirpidan"],
+[771797,685271,"Biruko — Horai'nin Ağzı","Biruko — Horai's Mouth"],
+[779822,601861,"Zandor — Felaketin Başlangıcı","Zandor — Prelude to Ruin"],
+[844693,575137,"Evelina — Savrulmuş Kaos","Evelina — Swept Chaos"],
+[845964,653404,"Boidekea'nın Tahtı — Olay Ufku","Throne of Boidekea — Event Horizon"],
+[913686,617906,"Sepu — Yığışımın Yolu","Sepu — Guidance of Accretion"],
+[1011320,621274,"Owen — Sonlanma Şoku Bölgesi","Owen — Termination Shock Zone"],
+[1052410,692737,"Kato — Anemoi Dağları","Kato — Anemoi Mountains"],
+[1091510,756320,"Kırık Kara Kristal — Vulkanoid","Broken Black Crystal — Vulcanoid"],
+[1148450,741902,"Senika — Abeona Dağı","Senika — Mount Abeona"],
+[1040480,648758,"Intikar — Fısıldayan Hatıra","Intikar — Whispering Memoir"],
+[1134520,680121,"Alustin — Angabu Karakolu","Alustin — Angabu Outpost"],
+[931334,832538,"Kırık Heykel — Yargı Terazisi","Broken Statue — Scales of Judgment"],
+[1212590,639853,"Banika — Rodosion Adası","Banika — Rodosion Island"],
+[1147550,649777,"Cecil — Parlayan Topraklar","Cecil — Shining Land"],
+[1195230,656132,"Eron — Auris Kıyısı","Eron — Auris Coast"],
+[957243,702359,"Magaia'nın Tahtı — Magaia Tapınağı","Throne of Magaia — Magaia Temple"]];
 
-// Kasaba NPC'leri — [x, z, ad]
+// Kasaba NPC'leri / Town NPCs — [x, z, TR, EN]
 const NPC=[
-[871088,737206,"Kızıl Alevin Kalıntısı"],
-[859430,787091,"Edania'nın Kalıntısı"],
-[878322,780736,"Edania'nın Kalıntısı"],
-[848774,753601,"Edania'nın Kalıntısı"],
-[857966,771941,"Edania'nın Kalıntısı"],
-[855356,624374,"Boşluğun Kalıntısı"],
-[883116,615288,"Edania'nın Kalıntısı"],
-[930337,609768,"Edania'nın Kalıntısı"],
-[866106,589172,"Edania'nın Kalıntısı"],
-[954693,775337,"Beyaz Gecenin Kalıntısı"],
-[1164330,827198,"Altının Kalıntısı"],
-[1137940,688188,"Bakura"],
-[1131490,680402,"Ganin As"],
-[1138210,689124,"Rapi Bedmountain"],
-[1134910,687796,"Itzkoa"],
-[1133830,686034,"Isobel Enkarosha"],
-[1131110,687447,"Marta Kiyen"],
-[1129800,686483,"Jirgo Biano"],
-[1133220,685835,"Tenoxi"],
-[1137750,687180,"Makui"],
-[1134650,680421,"Oroen"],
-[1135370,682798,"Edan"],
-[1137810,686414,"Marku"],
-[1135550,682877,"Koarina"],
-[1134900,688360,"Umali"],
-[1130780,684893,"Eilin"],
-[1131310,684274,"Emma Batali"],
-[1130200,684637,"Res"],
-[1131760,687304,"Shaila"],
-[1133260,686842,"Klorins"],
-[1136330,681983,"Patrizio"],
-[972057,826074,"Edania'nın Kalıntısı"],
-[938810,830117,"Edania'nın Kalıntısı"],
-[1057490,800918,"Sessiz Bekçinin Kalıntısı"],
-[1200430,659619,"Karanza"],
-[1200430,659319,"Koba"],
-[1198040,658863,"Jamalko"],
-[1195300,655023,"Tarukan"],
-[1195810,657458,"Zario"],
-[1194390,658397,"Bakuchi"],
-[1196950,659441,"Kuatz"],
-[1192790,655850,"Zanika"],
-[1115590,651513,"İnix'in Parçası"],
-[921085,634503,"Edania'nın Kalıntısı"]];
+[871088,737206,"Kızıl Alevin Kalıntısı","Vestige of the Red Flame"],
+[859430,787091,"Edania'nın Kalıntısı","Vestige of Edania"],
+[878322,780736,"Edania'nın Kalıntısı","Vestige of Edania"],
+[848774,753601,"Edania'nın Kalıntısı","Vestige of Edania"],
+[857966,771941,"Edania'nın Kalıntısı","Vestige of Edania"],
+[855356,624374,"Boşluğun Kalıntısı","Vestige of the Void"],
+[883116,615288,"Edania'nın Kalıntısı","Vestige of Edania"],
+[930337,609768,"Edania'nın Kalıntısı","Vestige of Edania"],
+[866106,589172,"Edania'nın Kalıntısı","Vestige of Edania"],
+[954693,775337,"Beyaz Gecenin Kalıntısı","Vestige of the White Night"],
+[1164330,827198,"Altının Kalıntısı","Vestige of Gold"],
+[1137940,688188,"Bakura","Bakura"],
+[1131490,680402,"Ganin As","Ganin As"],
+[1138210,689124,"Rapi Bedmountain","Rapi Bedmountain"],
+[1134910,687796,"Itzkoa","Itzkoa"],
+[1133830,686034,"Isobel Enkarosha","Isobel Enkarosha"],
+[1131110,687447,"Marta Kiyen","Marta Kiyen"],
+[1129800,686483,"Jirgo Biano","Jirgo Biano"],
+[1133220,685835,"Tenoxi","Tenoxi"],
+[1137750,687180,"Makui","Makui"],
+[1134650,680421,"Oroen","Oroen"],
+[1135370,682798,"Edan","Edan"],
+[1137810,686414,"Marku","Marku"],
+[1135550,682877,"Koarina","Koarina"],
+[1134900,688360,"Umali","Umali"],
+[1130780,684893,"Eilin","Eilin"],
+[1131310,684274,"Emma Batali","Emma Batali"],
+[1130200,684637,"Res","Res"],
+[1131760,687304,"Shaila","Shaila"],
+[1133260,686842,"Klorins","Klorins"],
+[1136330,681983,"Patrizio","Patrizio"],
+[972057,826074,"Edania'nın Kalıntısı","Vestige of Edania"],
+[938810,830117,"Edania'nın Kalıntısı","Vestige of Edania"],
+[1057490,800918,"Sessiz Bekçinin Kalıntısı","Vestige of the Silent Guard"],
+[1200430,659619,"Karanza","Karanza"],
+[1200430,659319,"Koba","Koba"],
+[1198040,658863,"Jamalko","Jamalko"],
+[1195300,655023,"Tarukan","Tarukan"],
+[1195810,657458,"Zario","Zario"],
+[1194390,658397,"Bakuchi","Bakuchi"],
+[1196950,659441,"Kuatz","Kuatz"],
+[1192790,655850,"Zanika","Zanika"],
+[1115590,651513,"İnix'in Parçası","Fragment of Inix"],
+[921085,634503,"Edania'nın Kalıntısı","Vestige of Edania"]];
 
-// İz tamamlamada kazanılan Agris Altın Sikkesi sayıları (Miras: her biri 10)
+// İz başına Agris Altın Sikkesi / Agris Gold Coins per Trace (Legacy: 10 each)
 const COIN_TRACE={1:15,2:15,3:15,4:20,5:25,6:25,7:25,8:30,9:30,10:25,16:15,17:15,18:15,19:15,20:25,21:25,22:25,23:25,24:30,25:25,31:15,32:15,33:15,34:30,35:25,36:30,37:30,38:30,39:30,40:20,46:15,47:15,48:15,49:30,50:30,51:25,52:30,53:30,54:30,55:30,61:15,62:15,63:15,64:30,65:30,66:30,67:30,68:25,69:30,70:30,76:15,77:15,78:15,79:30,80:25,81:25,82:25,83:25,84:25,85:30};
 
-// ── Roma rakamı üretici
 function toRoman(n){const T=[[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];let s='';for(const[v,r]of T){while(n>=v){s+=r;n-=v;}}return s;}
 
-// ── MARKERS yapısını kur (orijinal motorla aynı şema)
+// ── MARKERS (dil-bağımsız iç yapı / language-neutral internals)
 window.MARKERS={meta:{world:{sx0:-136,sx1:119,sz0:-80,sz1:143,sector:12800.0,native:128,tile:512,levels:[8,16,32,64,128]},
-layers:{relic:{label:"Tachyon'un Mirası",color:"#ffd54a"},trace:{label:"Tachyon'un İzi",color:"#ff4d4d"},klore:{label:"Bilgi",color:"#7ad3ff"},node:{label:"Bölge Yöneticisi",color:"#9be36b"},npc:{label:"Kasaba NPC'si",color:"#c9a7ff"}}},
+layers:{relic:{color:"#ffd54a"},trace:{color:"#ff4d4d"},klore:{color:"#7ad3ff"},node:{color:"#9be36b"},npc:{color:"#c9a7ff"}}},
 points:{
-relic:RELIC.map(r=>({x:r[0],z:r[1],n:"Tachyon'un Mirası "+toRoman(r[2]),a:AREA[r[3]],kind:"Miras",num:r[2],rom:toRoman(r[2]),card:15560+r[2]})),
-trace:TRACE.map(r=>({x:r[0],z:r[1],n:"Tachyon'un İzi "+toRoman(r[2]),a:AREA[r[3]],kind:"İz",num:r[2],rom:toRoman(r[2]),card:15710+r[2]}))
-.concat([{x:TRACE_EXTRA.x,z:TRACE_EXTRA.z,n:TRACE_EXTRA.n,a:TRACE_EXTRA.a}]),
-klore:KLORE.map(r=>({x:r[0],z:r[1],n:r[2],pref:r[3]})),
-node:NODE.map(r=>({x:r[0],z:r[1],n:r[2]})),
-npc:NPC.map(r=>({x:r[0],z:r[1],n:r[2]}))
+relic:RELIC.map(r=>({x:r[0],z:r[1],ai:r[3],kind:"relic",num:r[2],rom:toRoman(r[2]),card:15560+r[2]})),
+trace:TRACE.map(r=>({x:r[0],z:r[1],ai:r[3],kind:"trace",num:r[2],rom:toRoman(r[2]),card:15710+r[2]}))
+.concat([{x:TRACE_EXTRA.x,z:TRACE_EXTRA.z,ai:TRACE_EXTRA.area,kind:"trace",num:"gigagod",special:true}]),
+klore:KLORE.map(r=>({x:r[0],z:r[1],tr:r[2],en:r[3],pref:r[4],kind:"klore",num:Math.round(r[0])+"_"+Math.round(r[1])})),
+node:NODE.map(r=>({x:r[0],z:r[1],tr:r[2],en:r[3]})),
+npc:NPC.map(r=>({x:r[0],z:r[1],tr:r[2],en:r[3]}))
 }};
 
-// ── Görsel galerisi (korbdo.co.kr üzerindeki orijinal dosyalar)
+// ── Görsel galerisi / Image gallery (korbdo.co.kr'daki orijinal dosyalar)
 window.IMAGES=(()=>{
   const out={};
   const RD='img/타키온의 유산/', TD='img/타키온의 흔적/';
   const relicSingle=new Set([14,57,67,84,89,90]);
   for(const r of RELIC){const n=r[2];
-    out['Miras-'+n]=relicSingle.has(n)?[RD+n+'.webp']:[RD+n+' (1).webp',RD+n+' (2).webp'];}
+    out['relic-'+n]=relicSingle.has(n)?[RD+n+'.webp']:[RD+n+' (1).webp',RD+n+' (2).webp'];}
   const traceCount={9:4,55:4,10:3,39:3}; const traceSingle=new Set([22,47]);
   for(const r of TRACE){const n=r[2];
-    if(traceSingle.has(n)){out['İz-'+n]=[TD+n+'.webp'];continue;}
-    if(n===70){out['İz-70']=[TD+'70 (1).webp',TD+'70 (2) 오오왼.webp'];continue;}
+    if(traceSingle.has(n)){out['trace-'+n]=[TD+n+'.webp'];continue;}
+    if(n===70){out['trace-70']=[TD+'70 (1).webp',TD+'70 (2) 오오왼.webp'];continue;}
     const c=traceCount[n]||2, arr=[];
     for(let i=1;i<=c;i++)arr.push(TD+n+' ('+i+').webp');
-    out['İz-'+n]=arr;}
-  out['name-Gigagod İzi']=[1,2,3,4].map(i=>TD+'흔적 기가고드/흔적 기가고드 ('+i+').webp');
+    out['trace-'+n]=arr;}
+  out['trace-gigagod']=[1,2,3,4].map(i=>TD+'흔적 기가고드/흔적 기가고드 ('+i+').webp');
   for(const k of KLORE)
-    out['Bilgi-'+Math.round(k[0])+'_'+Math.round(k[1])]=[1,2].map(i=>'img/지식/'+k[3]+' ('+i+').webp');
+    out['klore-'+Math.round(k[0])+'_'+Math.round(k[1])]=[1,2].map(i=>'img/지식/'+k[4]+' ('+i+').webp');
   return out;
 })();
+
+// ── Dil paketi / Language pack
+const L10N={
+tr:{
+  title:"Edania — Tachyon'un İzi · Mirası (Türkçe İnteraktif Harita)",
+  h1:"Edania — Tachyon Haritası",
+  expand:"Genişlet", collapse:"Daralt",
+  ph:"Ara — Miras 46 · İz XLVI vb.",
+  layers:{relic:"Tachyon'un Mirası",trace:"Tachyon'un İzi",klore:"Bilgi",node:"Bölge Yöneticisi",npc:"Kasaba NPC'si"},
+  kinds:{relic:"Miras",trace:"İz",klore:"Bilgi"},
+  chest:{relic:r=>"Tachyon'un Mirası "+r,trace:r=>"Tachyon'un İzi "+r},
+  gigagod:"Gigagod İzi",
+  knowledgeWord:"Bilgi",
+  coinName:"Agris Altın Sikkesi", coinShort:"Altın Sikke",
+  progress:"İlerleme",
+  fit:"Tümünü Gör", reset:"Sıfırla", save:"Kaydet", load:"Yükle",
+  markFound:"Buldum ✓", unmark:"Geri Al", foundTag:"bulundu",
+  hideFound:"Bulunanları gizle",
+  noresult:"Sonuç bulunamadı",
+  dblHint:"İpucu: haritada çift tıklayarak da işaretleyebilirsin",
+  fs:"⛶ Tam Ekran",
+  confirmReset:n=>n+" işaretin tümü silinsin mi?",
+  toastSaved:n=>n+" kayıt dosyaya kaydedildi",
+  toastLoaded:n=>n+" kayıt yüklendi",
+  toastFail:"Yükleme başarısız — geçersiz dosya",
+  toastFound:t=>t+" bulundu olarak işaretlendi",
+  toastUnfound:t=>t+" işareti kaldırıldı"
+},
+en:{
+  title:"Edania — Tachyon's Trace · Legacy (Interactive Map)",
+  h1:"Edania — Tachyon Map",
+  expand:"Expand", collapse:"Collapse",
+  ph:"Search — Legacy 46 · Trace XLVI etc.",
+  layers:{relic:"Tachyon's Legacy",trace:"Tachyon's Trace",klore:"Knowledge",node:"Node Manager",npc:"Town NPC"},
+  kinds:{relic:"Legacy",trace:"Trace",klore:"Knowledge"},
+  chest:{relic:r=>"Tachyon's Legacy "+r,trace:r=>"Tachyon's Trace "+r},
+  gigagod:"Trace of Gigagod",
+  knowledgeWord:"Knowledge",
+  coinName:"Agris Gold Coin", coinShort:"Gold Coin",
+  progress:"Progress",
+  fit:"Fit View", reset:"Reset", save:"Export", load:"Import",
+  markFound:"Found ✓", unmark:"Unmark", foundTag:"found",
+  hideFound:"Hide found",
+  noresult:"No results",
+  dblHint:"Tip: double-click a marker on the map to mark it",
+  fs:"⛶ Fullscreen",
+  confirmReset:n=>"Clear all "+n+" found marks?",
+  toastSaved:n=>n+" marks exported to file",
+  toastLoaded:n=>n+" marks imported",
+  toastFail:"Import failed — invalid file",
+  toastFound:t=>t+" marked as found",
+  toastUnfound:t=>t+" unmarked"
+}};
 </script>
 <script>
-// ── Motor (korbdo.co.kr Edania2 haritasının Türkçe uyarlaması)
+// ── Motor / Engine (korbdo.co.kr Edania2 haritasının TR/EN uyarlaması)
 const BASE='https://www.korbdo.co.kr/Edania2/';
 const IMGV='1786619715';
 const imgURL=src=>BASE+encodeURI(src)+'?v='+IMGV;
@@ -316,33 +399,50 @@ const WORLD_X0=W.sx0*SECTOR,WORLD_Z1=(W.sz1+1)*SECTOR;
 const LEVELS=W.levels.slice().sort((a,b)=>a-b);
 const toU=wx=>(wx-WORLD_X0)/SECTOR;
 const toV=wz=>(WORLD_Z1-wz)/SECTOR;
-const ux2wx=u=>WORLD_X0+u*SECTOR;
 const OCEAN='#183435';
 
 const cv=document.getElementById('map'),ctx=cv.getContext('2d');
 const tipEl=document.getElementById('tip'),selEl=document.getElementById('sel');
 let DPR=1,VW=0,VH=0;
 const CHEST=['relic','trace'];
+const DONE_ALPHA=0.18; // bulunanlar iyice soluk / found markers strongly faded
+
+// ── Dil / Language
+const LANG_STORE='bdo_tachyon_lang';
+let lang='tr';
+try{const s=localStorage.getItem(LANG_STORE);if(s==='en'||s==='tr')lang=s;}catch(e){}
+const T=()=>L10N[lang];
+const li=()=>lang==='en'?1:0;
+
+function applyNames(){
+  const t=T(),i=li();
+  for(const p of M.points.relic){p.n=t.chest.relic(p.rom);p.a=AREA[p.ai][i];}
+  for(const p of M.points.trace){p.n=p.special?t.gigagod:t.chest.trace(p.rom);p.a=AREA[p.ai][i];}
+  for(const p of M.points.klore){p.n=i?p.en:p.tr;}
+  for(const p of M.points.node){p.n=i?p.en:p.tr;}
+  for(const p of M.points.npc){p.n=i?p.en:p.tr;}
+}
 
 const radius=id=>CHEST.includes(id)?Math.max(2.8,Math.min(6.5,view.k*.22)):Math.max(2.2,Math.min(5.0,view.k*.17));
 const on={};for(const id in M.points)on[id]=true;
-
-// Bilgi noktaları da tamamlanabilir — koordinat tabanlı sabit anahtar
-if(M.points.klore)M.points.klore.forEach(p=>{if(!p.kind){p.kind='Bilgi';p.num=Math.round(p.x)+'_'+Math.round(p.z);}});
 const DONEABLE=['relic','trace','klore'].flatMap(id=>M.points[id]||[]);
 
-// ── Tamamlananlar: localStorage (dosyadan açınca da çalışır)
+// ── Bulunanlar / Found marks — localStorage, dil-bağımsız anahtarlar
 const STORE='bdo_tachyon_done_tr';
 const keyOf=p=>`${p.kind}-${p.num}`;
+// v1 anahtar taşıma / migrate old v1 keys
+const migrate=k=>k.replace(/^Miras-/, 'relic-').replace(/^İz-/, 'trace-').replace(/^Bilgi-/, 'klore-');
 let DONE=new Set();
-try{DONE=new Set(JSON.parse(localStorage.getItem(STORE)||'[]'));}catch(e){}
+try{DONE=new Set((JSON.parse(localStorage.getItem(STORE)||'[]')).map(migrate));}catch(e){}
 const saveDone=()=>{try{localStorage.setItem(STORE,JSON.stringify([...DONE]));}catch(e){}};
 const isDone=p=>p.kind&&DONE.has(keyOf(p));
+let hideFound=false;
+try{hideFound=localStorage.getItem('bdo_tachyon_hidefound')==='1';}catch(e){}
 
 const IMG=window.IMAGES||{};
-const imagesFor=p=>IMG[keyOf(p)]||IMG['name-'+(p.n||'')]||[];
+const imagesFor=p=>p.kind?(IMG[keyOf(p)]||[]):[];
 
-// ── Görünür alan = tüm markerları saran kutu + pay
+// ── Görünür alan / Viewable box
 const PAD=2.5;
 const BOX=(()=>{let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;
   for(const id in M.points)for(const p of M.points[id]){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z);}
@@ -351,7 +451,7 @@ const BOXW=BOX.u1-BOX.u0,BOXH=BOX.v1-BOX.v0;
 const view={u:(BOX.u0+BOX.u1)/2,v:(BOX.v0+BOX.v1)/2,k:8};
 let sel=null;
 
-// ── Karo önbelleği
+// ── Karo önbelleği / Tile cache
 const cache=new Map();
 const have={};for(const l in TILES)have[l]=new Set(TILES[l]);
 function tileImg(lvl,tx,ty){
@@ -385,12 +485,12 @@ function resize(){
   cv.style.width=VW+'px';cv.style.height=VH+'px';
   clamp();draw();
 }
+const hidden=p=>hideFound&&isDone(p);
 function draw(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.clearRect(0,0,VW,VH);
   ctx.fillStyle=OCEAN;
   ctx.fillRect(0,0,VW,VH);
-  // karolar
   const lvl=pickLevel();
   const span=TILE/lvl,px=span*view.k;
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
@@ -402,16 +502,16 @@ function draw(){
       ctx.drawImage(im,sx(tx*span),sy(ty*span),px+1,px+1);
     }
   }
-  // markerlar
   for(const id of ['npc','node','klore','trace','relic']){
     if(!on[id]||!M.points[id])continue;
     const r=radius(id);
     const col=M.meta.layers[id].color;
     ctx.lineWidth=Math.max(1,r*.35);
     for(const p of M.points[id]){
+      if(hidden(p))continue;
       const X=sx(toU(p.x)),Y=sy(toV(p.z));
       if(X<-20||Y<-20||X>VW+20||Y>VH+20)continue;
-      ctx.globalAlpha=isDone(p)?.45:1;
+      ctx.globalAlpha=isDone(p)?DONE_ALPHA:1;
       ctx.fillStyle=col;ctx.strokeStyle='#0b0f14cc';
       ctx.beginPath();ctx.arc(X,Y,r,0,7);ctx.fill();ctx.stroke();
       ctx.globalAlpha=1;
@@ -422,36 +522,38 @@ function draw(){
       }
     }
   }
-  // etiketler: 'Miras X' / 'İz X' / 'Bilgi'
+  // etiketler / labels
+  const t=T();
   const labels=[];
   const dy=radius('relic')+10;
   for(const id of ['relic','trace']){
     if(!on[id]||!M.points[id])continue;
     const col=id==='relic'?'#ffe9a3':'#ffb3b3';
-    for(const p of M.points[id])
-      labels.push({p,t:p.rom?`${p.kind} ${p.rom}`:p.n,col,dy});
+    for(const p of M.points[id]){
+      if(hidden(p))continue;
+      labels.push({p,t:p.rom?`${t.kinds[p.kind]} ${p.rom}`:p.n,col,dy});
+    }
   }
   if(on.klore&&M.points.klore&&view.k>=26)
-    for(const p of M.points.klore)labels.push({p,t:'Bilgi',col:'#bfe6ff',dy:radius('klore')+9});
+    for(const p of M.points.klore){if(!hidden(p))labels.push({p,t:t.knowledgeWord,col:'#bfe6ff',dy:radius('klore')+9});}
   const FS=(document.fullscreenElement||document.webkitFullscreenElement)?1.45:1;
   if(view.k>=16){
     ctx.font='700 '+Math.round(12*FS)+'px system-ui, sans-serif';
     ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.lineWidth=3.5;ctx.strokeStyle='#0b0f14e6';
     const put=[];
-    for(const L of labels){
-      const X=sx(toU(L.p.x)),Y=sy(toV(L.p.z))+L.dy;
+    for(const Lb of labels){
+      const X=sx(toU(Lb.p.x)),Y=sy(toV(Lb.p.z))+Lb.dy;
       if(X<0||Y<0||X>VW||Y>VH)continue;
-      const w=ctx.measureText(L.t).width+8;
+      const w=ctx.measureText(Lb.t).width+8;
       if(put.some(q=>Math.abs(q[0]-X)<(q[2]+w)/2&&Math.abs(q[1]-Y)<13))continue;
       put.push([X,Y,w]);
-      ctx.globalAlpha=isDone(L.p)?.45:1;
-      ctx.fillStyle=L.col;
-      ctx.strokeText(L.t,X,Y);ctx.fillText(L.t,X,Y);
+      ctx.globalAlpha=isDone(Lb.p)?DONE_ALPHA:1;
+      ctx.fillStyle=Lb.col;
+      ctx.strokeText(Lb.t,X,Y);ctx.fillText(Lb.t,X,Y);
       ctx.globalAlpha=1;
     }
   }
-  // bölge yöneticisi adları
   if(on.node&&M.points.node){
     ctx.font='600 '+Math.round(11*FS)+'px system-ui, sans-serif';
     ctx.textAlign='center';ctx.textBaseline='bottom';
@@ -459,13 +561,13 @@ function draw(){
     for(const p of M.points.node){
       const X=sx(toU(p.x)),Y=sy(toV(p.z));
       if(X<0||Y<0||X>VW||Y>VH)continue;
-      const t=p.n.split('—').pop().trim();
-      ctx.strokeText(t,X,Y-7);ctx.fillText(t,X,Y-7);
+      const tt=p.n.split('—').pop().trim();
+      ctx.strokeText(tt,X,Y-7);ctx.fillText(tt,X,Y-7);
     }
   }
   placeSel();
 }
-// ── Seçim paneli
+// ── Seçim / Selection
 function placeSel(){
   if(!sel){selEl.style.display='none';return;}
   const X=sx(toU(sel.p.x)),Y=sy(toV(sel.p.z));
@@ -473,18 +575,21 @@ function placeSel(){
   selEl.style.left=Math.max(8,Math.min(X+16,VW-selEl.offsetWidth-8))+'px';
   selEl.style.top=Math.max(8,Math.min(Y+14,VH-selEl.offsetHeight-8))+'px';
 }
+function coinOf(p,id){return id==='relic'?10:id==='trace'?(COIN_TRACE[p.num]||0):0;}
 function select(p,id){
   sel={p,id};
+  const t=T();
   document.getElementById('sel-t').textContent=p.n;
-  const base=CHEST.includes(id)?`${p.a}${p.card?' · Bilgi '+p.card:''}`:`${M.meta.layers[id].label}`;
+  const base=CHEST.includes(id)?`${p.a}${p.card?' · '+t.knowledgeWord+' '+p.card:''}`:`${t.layers[id]}`;
   const coin=CHEST.includes(id)?coinOf(p,id):null;
   document.getElementById('sel-s').innerHTML=
-    (coin!=null?`<div class="sel-coin"><img class="prog-coin-ic" src="${COIN_ICON}" alt="Altın Sikke">Agris Altın Sikkesi: ${coin}</div>`:'')+
+    (coin!=null&&coin>0?`<div class="sel-coin"><img class="prog-coin-ic" src="${COIN_ICON}" alt="">${t.coinName}: ${coin}</div>`:'')+
     `<div class="sel-area">${base}</div>`;
   const b=document.getElementById('sel-done');
   b.style.display=p.kind?'':'none';
-  b.textContent=isDone(p)?'Geri Al':'Tamamla';
+  b.textContent=isDone(p)?t.unmark:t.markFound;
   b.classList.toggle('on',isDone(p));
+  document.getElementById('sel-hint').textContent=p.kind?t.dblHint:'';
   const imgs=imagesFor(p);
   const gal=document.getElementById('sel-imgs');
   gal.innerHTML='';
@@ -496,18 +601,23 @@ function select(p,id){
   });
   draw();
 }
-document.getElementById('sel-done').onclick=()=>{
-  if(!sel||!sel.p.kind)return;
-  const k=keyOf(sel.p);
-  DONE.has(k)?DONE.delete(k):DONE.add(k);
-  saveDone();select(sel.p,sel.id);progress();search();
-};
+function toggleDone(p,id,quiet){
+  if(!p.kind)return;
+  const k=keyOf(p);
+  const was=DONE.has(k);
+  was?DONE.delete(k):DONE.add(k);
+  saveDone();
+  if(sel&&sel.p===p)select(p,id);
+  progress();search();draw();
+  if(!quiet)toast(was?T().toastUnfound(p.n):T().toastFound(p.n));
+}
+document.getElementById('sel-done').onclick=()=>{if(sel)toggleDone(sel.p,sel.id,true);};
 addEventListener('keydown',e=>{
   if(lbEl.classList.contains('open'))return;
   if(document.activeElement===document.getElementById('q'))return;
-  if((e.key===' '||e.key==='Enter')&&sel&&sel.p.kind){e.preventDefault();document.getElementById('sel-done').click();}
+  if((e.key===' '||e.key==='Enter')&&sel&&sel.p.kind){e.preventDefault();toggleDone(sel.p,sel.id,true);}
 });
-// ── Etkileşim
+// ── Etkileşim / Interaction
 let drag=null;
 cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,u:view.u,v:view.v};cv.setPointerCapture(e.pointerId);cv.classList.add('drag');});
 cv.addEventListener('pointerup',e=>{
@@ -516,6 +626,10 @@ cv.addEventListener('pointerup',e=>{
     if(near)select(near.p,near.id);else{sel=null;draw();}
   }
   drag=null;cv.classList.remove('drag');
+});
+cv.addEventListener('dblclick',e=>{
+  const near=nearest(e);
+  if(near&&near.p.kind)toggleDone(near.p,near.id);
 });
 cv.addEventListener('pointermove',e=>{
   if(drag){
@@ -576,6 +690,7 @@ function nearest(e,R=18){
   for(const id in M.points){
     if(!on[id])continue;
     for(const p of M.points[id]){
+      if(hidden(p))continue;
       const dx=sx(toU(p.x))-e.clientX,dy2=sy(toV(p.z))-e.clientY;
       const d=dx*dx+dy2*dy2;
       if(d<bd){bd=d;best={p,id};}
@@ -587,26 +702,30 @@ function hover(e){
   const best=nearest(e);
   if(!best||best.id==='relic'||best.id==='trace'||best.id==='klore'){tipEl.style.display='none';return;}
   const{p,id}=best;
-  tipEl.innerHTML=`<div><b>${p.n}</b>${isDone(p)?' <span class="k">tamamlandı</span>':''}</div>`+
-    (CHEST.includes(id)?`<div class="k">${p.a}${p.card?' · Bilgi '+p.card:''}</div>`:`<div class="k">${M.meta.layers[id].label}</div>`);
+  const t=T();
+  tipEl.innerHTML=`<div><b>${p.n}</b>${isDone(p)?' <span class="k">'+t.foundTag+'</span>':''}</div>`+
+    (CHEST.includes(id)?`<div class="k">${p.a}</div>`:`<div class="k">${t.layers[id]}</div>`);
   tipEl.style.display='block';
   tipEl.style.left=Math.min(e.clientX+14,VW-tipEl.offsetWidth-8)+'px';
   tipEl.style.top=(e.clientY+16)+'px';
 }
-// ── Katman arayüzü
-const box=document.getElementById('layers');
-for(const id of ['relic','trace','klore','node','npc']){
-  if(!M.points[id])continue;
-  const L=M.meta.layers[id];
-  const el=document.createElement('label');
-  el.className='layer';
-  el.innerHTML=`<input type="checkbox" checked>`+
-    `<span class="dot" style="background:${L.color}"></span>`+
-    `<span class="nm">${L.label}</span><span class="ct">${M.points[id].length}</span>`;
-  el.querySelector('input').onchange=e=>{on[id]=e.target.checked;search();draw();};
-  box.appendChild(el);
+// ── Katmanlar / Layer UI
+function buildLayers(){
+  const t=T();
+  const box=document.getElementById('layers');
+  box.innerHTML='';
+  for(const id of ['relic','trace','klore','node','npc']){
+    if(!M.points[id])continue;
+    const el=document.createElement('label');
+    el.className='layer';
+    el.innerHTML=`<input type="checkbox" ${on[id]?'checked':''}>`+
+      `<span class="dot" style="background:${M.meta.layers[id].color}"></span>`+
+      `<span class="nm">${t.layers[id]}</span><span class="ct">${M.points[id].length}</span>`;
+    el.querySelector('input').onchange=e=>{on[id]=e.target.checked;search();draw();};
+    box.appendChild(el);
+  }
 }
-// ── Arama (Türkçe büyük/küçük harf uyumlu + Roma rakamı)
+// ── Arama / Search (TR+EN anahtar kelimeler, Roma rakamları)
 const ROMAN={I:1,V:5,X:10,L:50,C:100};
 function fromRoman(s){
   let t=0;
@@ -623,16 +742,16 @@ function focusPoint(p,id){
   view.u=toU(p.x);view.v=toV(p.z);
   clamp();select(p,id);
 }
+const KINDWORDS={'MİRAS':'relic','MIRAS':'relic','LEGACY':'relic','İZ':'trace','IZ':'trace','TRACE':'trace','BİLGİ':'klore','BILGI':'klore','KNOWLEDGE':'klore'};
 function search(){
   const raw=document.getElementById('q').value.trim();
   const hits=document.getElementById('hits');
   hits.innerHTML='';
   if(!raw)return;
   let kind=null;
-  const toks=trUp(raw).split(/\s+/).filter(t=>{
-    if(t==='MİRAS'||t==='MIRAS'){kind='Miras';return false;}
-    if(t==='İZ'||t==='IZ'){kind='İz';return false;}
-    if(t==='BİLGİ'||t==='BILGI'){kind='Bilgi';return false;}
+  const toks=trUp(raw).split(/\s+/).filter(tk=>{
+    const kw=KINDWORDS[tk]||KINDWORDS[tk.replace(/İ/g,'I')];
+    if(kw){kind=kw;return false;}
     return true;
   });
   const rest=toks.join(' ');
@@ -644,15 +763,15 @@ function search(){
     for(const p of M.points[id]){
       const hay=trUp((p.n||'')+' '+(p.a||''));
       let ok;
-      if(p.kind&&p.kind!=='Bilgi'){
+      if(CHEST.includes(id)){
         if(kind&&p.kind!==kind)continue;
         if(num!=null)ok=p.num===num;
         else if(rest)ok=hay.includes(rest);
         else ok=!!kind;
-      }else if(p.kind==='Bilgi'){
-        if(kind&&kind!=='Bilgi')continue;
+      }else if(id==='klore'){
+        if(kind&&kind!=='klore')continue;
         if(num!=null)continue;
-        ok=rest?hay.includes(rest):kind==='Bilgi';
+        ok=rest?hay.includes(rest):kind==='klore';
       }else{
         if(kind||num!=null)continue;
         ok=!!rest&&hay.includes(rest);
@@ -662,7 +781,7 @@ function search(){
       if(out.length>40)break;
     }
   }
-  if(!out.length){hits.innerHTML='<div class="none">Sonuç bulunamadı</div>';return;}
+  if(!out.length){hits.innerHTML='<div class="none">'+T().noresult+'</div>';return;}
   for(const h of out.slice(0,12)){
     const d=document.createElement('div');
     if(isDone(h.p))d.className='off';
@@ -677,55 +796,93 @@ document.getElementById('q').addEventListener('keydown',e=>{
   if(e.key==='Enter')document.querySelector('#hits div:not(.none)')?.click();
   if(e.key==='Escape'){e.target.value='';search();}
 });
-// ── İlerleme + Altın Sikke
-function coinOf(p,id){return id==='relic'?10:id==='trace'?(COIN_TRACE[p.num]||0):0;}
+// ── İlerleme / Progress
+const pctF=p=>lang==='en'?`(${p}%)`:`(%${p})`;
 function coinStats(){
   let earned=0,total=0;
-  for(const p of (M.points.relic||[])){const v=10;total+=v;if(isDone(p))earned+=v;}
+  for(const p of (M.points.relic||[])){total+=10;if(isDone(p))earned+=10;}
   for(const p of (M.points.trace||[])){const v=COIN_TRACE[p.num]||0;total+=v;if(isDone(p))earned+=v;}
   return{earned,total,pct:total?Math.round(earned/total*100):0};
 }
 function progress(){
+  const t=T();
   const tot=new Set(DONEABLE.map(keyOf));
   const el=document.getElementById('prog');
   const per=k=>{
-    const all=[...tot].filter(t=>t.startsWith(k+'-')).length;
-    const got=[...DONE].filter(t=>t.startsWith(k+'-')&&tot.has(t)).length;
+    const all=[...tot].filter(x=>x.startsWith(k+'-')).length;
+    const got=[...DONE].filter(x=>x.startsWith(k+'-')&&tot.has(x)).length;
     const pct=all?Math.round(got/all*100):0;
-    return`<div class="prog-row"><b class="prog-k">${k}</b> : <b>${got}</b>/${all} <span class="prog-pct">(%${pct})</span></div>`;
+    return`<div class="prog-row"><b class="prog-k">${t.kinds[k]}</b> : <b>${got}</b>/${all} <span class="prog-pct">${pctF(pct)}</span></div>`;
   };
   const c=coinStats();
-  const coinRow=`<div class="prog-coin"><img class="prog-coin-ic" src="${COIN_ICON}" alt="Agris Altın Sikkesi">`+
-    `<b>Altın Sikke</b> : <b>${c.earned}</b>/${c.total} <span class="prog-pct">(%${c.pct})</span></div>`;
-  el.innerHTML=coinRow+`<div class="prog-h">İlerleme</div>${per('Miras')}${per('İz')}${per('Bilgi')}`;
+  const coinRow=`<div class="prog-coin"><img class="prog-coin-ic" src="${COIN_ICON}" alt="">`+
+    `<b>${t.coinShort}</b> : <b>${c.earned}</b>/${c.total} <span class="prog-pct">${pctF(c.pct)}</span></div>`;
+  el.innerHTML=coinRow+`<div class="prog-h">${t.progress}</div>${per('relic')}${per('trace')}${per('klore')}`;
 }
-// Panel aç/kapa
+// ── Statik arayüz metinleri / Static UI text
+function applyLang(){
+  const t=T();
+  document.title=t.title;
+  document.documentElement.lang=lang;
+  document.getElementById('ui-title').textContent=t.h1;
+  document.getElementById('ui-caret').textContent=document.getElementById('ui').classList.contains('collapsed')?t.expand:t.collapse;
+  document.getElementById('q').placeholder=t.ph;
+  document.getElementById('hidefound-label').textContent=t.hideFound;
+  document.getElementById('btn-fit').textContent=t.fit;
+  document.getElementById('btn-reset').textContent=t.reset;
+  document.getElementById('btn-export').textContent=t.save;
+  document.getElementById('btn-import').textContent=t.load;
+  document.getElementById('btn-fs').textContent=t.fs;
+  document.getElementById('lang-tr').classList.toggle('on',lang==='tr');
+  document.getElementById('lang-en').classList.toggle('on',lang==='en');
+  applyNames();
+  buildLayers();
+  progress();
+  if(sel)select(sel.p,sel.id);
+  search();
+  draw();
+}
+function setLang(l){
+  lang=l;
+  try{localStorage.setItem(LANG_STORE,l);}catch(e){}
+  applyLang();
+}
+document.getElementById('lang-tr').onclick=()=>setLang('tr');
+document.getElementById('lang-en').onclick=()=>setLang('en');
+// Bulunanları gizle / Hide found
+const hf=document.getElementById('hide-found');
+hf.checked=hideFound;
+hf.onchange=()=>{
+  hideFound=hf.checked;
+  try{localStorage.setItem('bdo_tachyon_hidefound',hideFound?'1':'0');}catch(e){}
+  if(sel&&hidden(sel.p)){sel=null;}
+  draw();
+};
+// Panel aç/kapa / Collapse
 document.getElementById('ui-head').addEventListener('click',()=>{
   const collapsed=document.getElementById('ui').classList.toggle('collapsed');
-  document.getElementById('ui-caret').textContent=collapsed?'Genişlet':'Daralt';
+  document.getElementById('ui-caret').textContent=collapsed?T().expand:T().collapse;
 });
 document.getElementById('btn-fit').onclick=()=>{
   view.u=(BOX.u0+BOX.u1)/2;view.v=(BOX.v0+BOX.v1)/2;view.k=kFit();
   sel=null;clamp();draw();
 };
 document.getElementById('btn-reset').onclick=()=>{
-  if(!DONE.size||!confirm(`${DONE.size} tamamlama işaretinin tümü silinsin mi?`))return;
+  if(!DONE.size||!confirm(T().confirmReset(DONE.size)))return;
   DONE.clear();saveDone();progress();search();draw();
 };
-// Tamamlananları dosyaya kaydet
 document.getElementById('btn-export').onclick=()=>{
-  const data={app:'tachyon-done',version:1,saved:new Date().toISOString(),done:[...DONE]};
+  const data={app:'tachyon-done',version:2,saved:new Date().toISOString(),done:[...DONE]};
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const d=new Date();
   const stamp=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
   const a=document.createElement('a');
-  a.href=url;a.download=`tachyon_ilerleme_${stamp}.json`;
+  a.href=url;a.download=`tachyon_${stamp}.json`;
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
-  toast(`${DONE.size} tamamlanan kayıt dosyaya kaydedildi`);
+  toast(T().toastSaved(DONE.size));
 };
-// Dosyadan yükle
 document.getElementById('btn-import').onclick=()=>document.getElementById('file-import').click();
 document.getElementById('file-import').onchange=(e)=>{
   const f=e.target.files&&e.target.files[0];
@@ -737,14 +894,13 @@ document.getElementById('file-import').onchange=(e)=>{
       const parsed=JSON.parse(r.result);
       const arr=Array.isArray(parsed)?parsed:(parsed&&parsed.done);
       if(!Array.isArray(arr))throw new Error('format');
-      DONE=new Set(arr.filter(x=>typeof x==='string'));
+      DONE=new Set(arr.filter(x=>typeof x==='string').map(migrate));
       saveDone();progress();search();draw();
-      toast(`${DONE.size} kayıt yüklendi`);
-    }catch(err){toast('Yükleme başarısız — geçersiz dosya');}
+      toast(T().toastLoaded(DONE.size));
+    }catch(err){toast(T().toastFail);}
   };
   r.readAsText(f);
 };
-// Tam ekran
 document.getElementById('btn-fs').onclick=()=>{
   if(document.fullscreenElement)document.exitFullscreen();
   else document.documentElement.requestFullscreen();
@@ -752,7 +908,8 @@ document.getElementById('btn-fs').onclick=()=>{
 addEventListener('resize',resize);
 document.addEventListener('fullscreenchange',()=>{resize();setTimeout(resize,80);});
 document.addEventListener('webkitfullscreenchange',()=>{resize();setTimeout(resize,80);});
-progress();resize();
+applyLang();
+resize();
 document.getElementById('btn-fit').click();
 </script>
 </html>
