@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geliştirme Hesaplayıcı — BDO</title>
+<!--
+  Veri kaynakları / Data sources (oyun içi resmi değerler / official in-game values):
+  - Kharazad: https://www.blackdesertfoundry.com/kharazad-accessories-guide/ (base rates, cron counts, materials)
+  - X-sistemi şans formülü: base × (1 + 0.1 × FS) — resmi yama notları / topluluk doğrulaması (Sovereign/Kharazad/Edania)
+  - Pity (garantili geliştirme) ve cron adetleri oyun içi geliştirme penceresinde gösterilen resmi değerlerdir.
+  - Canlı pazar fiyatları: https://api.arsha.io (topluluk API'si)
+  Kod bu site için sıfırdan yazılmıştır. © Pearl Abyss (oyun verileri)
+-->
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#2b3440; --fg:#e6edf3; --dim:#8b949e; --accent:#ffd54a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--fg); font:13.5px/1.5 "Segoe UI", system-ui, sans-serif; }
+  #nav { position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:4px; padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  #nav a { color:var(--fg); text-decoration:none; padding:5px 10px; border-radius:7px; font-size:13px; white-space:nowrap; }
+  #nav a:hover { background:#ffffff12; }
+  #nav a.act { color:var(--accent); font-weight:700; }
+  #nav button { background:#21262d; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:4px 10px; cursor:pointer; font-size:12px; }
+  #nav button:hover { background:#30363d; }
+  #nav button.on { background:#2d5a3d; border-color:#3d7a52; font-weight:700; }
+  main { max-width:1180px; margin:0 auto; padding:16px 14px 40px; }
+  h1 { font-size:19px; margin:10px 0 2px; }
+  .sub { color:var(--dim); font-size:12.5px; margin-bottom:14px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:13px 15px; margin-bottom:14px; }
+  .grid { display:flex; gap:14px; flex-wrap:wrap; }
+  .grid .card { flex:1; min-width:300px; }
+  label.opt { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0; }
+  select,input[type=number],input[type=text] { background:#0d1117; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:5px 8px; font:inherit; font-size:12.5px; }
+  input[type=number] { width:110px; text-align:right; font-variant-numeric:tabular-nums; }
+  input.fs { width:64px; }
+  .price-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:5px 0; font-size:12.5px; }
+  .price-row .nm { color:var(--dim); }
+  button.btn { background:#21262d; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px 12px; cursor:pointer; font:inherit; font-size:12.5px; }
+  button.btn:hover { background:#30363d; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th,td { padding:7px 9px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--dim); font-size:11.5px; font-weight:600; }
+  th:first-child,td:first-child { text-align:left; }
+  td.lvl { font-weight:700; color:var(--accent); }
+  tr.outside { opacity:.35; }
+  tr.total td { font-weight:700; border-top:2px solid var(--line); }
+  .pill { display:inline-block; background:#21262d; border:1px solid var(--line); border-radius:20px; padding:1px 9px; font-size:11px; color:var(--dim); }
+  .warn { color:#ffb3b3; font-size:12px; }
+  .ok { color:#9be36b; }
+  #toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%); background:#161b22f2; border:1px solid var(--line); border-radius:8px; padding:8px 14px; font-size:12.5px; opacity:0; transition:opacity .25s; pointer-events:none; z-index:50; }
+  footer { color:var(--dim); font-size:11.5px; margin-top:22px; border-top:1px solid var(--line); padding-top:10px; }
+  footer a { color:var(--dim); }
+  .note { color:var(--dim); font-size:12px; margin-top:8px; }
+</style>
+<nav id="nav">
+  <a href="index.html">🗺 <span id="nv-map"></span></a>
+  <a href="enhancement.html" class="act">⚒ <span id="nv-enh"></span></a>
+  <a href="fs-cost.html">📈 <span id="nv-fs"></span></a>
+  <a href="carrack.html">⛵ Carrack</a>
+  <a href="lifeskill-buffs.html">🧪 <span id="nv-ls"></span></a>
+  <span style="flex:1"></span>
+  <button id="lang-tr">TR</button><button id="lang-en">EN</button>
+</nav>
+<main>
+  <h1 id="h1"></h1>
+  <div class="sub" id="sub"></div>
+
+  <div class="grid">
+    <div class="card">
+      <label class="opt"><span id="l-item"></span>
+        <select id="item">
+          <option value="kharazad">Kharazad</option>
+          <option value="sovereign">Sovereign</option>
+          <option value="edana">Edana</option>
+        </select>
+      </label>
+      <label class="opt"><span id="l-start"></span><select id="start"></select></label>
+      <label class="opt"><span id="l-goal"></span><select id="goal"></select></label>
+      <label class="opt"><span id="l-valks"></span>
+        <select id="valks"><option>0</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option><option>60</option><option>100</option><option>150</option></select>
+      </label>
+      <label class="opt"><span id="l-base-cost"></span><input type="number" id="baseCost" min="0" step="1000000" value="0"></label>
+      <div class="note" id="n-formula"></div>
+    </div>
+    <div class="card">
+      <div class="price-row"><span class="nm" id="l-cron"></span><input type="number" id="p-cron" min="0" step="10000"></div>
+      <div id="mat-prices"></div>
+      <div class="price-row" style="margin-top:10px">
+        <select id="region">
+          <option value="mena" selected>MENA</option><option value="eu">EU</option><option value="na">NA</option>
+          <option value="asia">ASIA</option><option value="sea">SEA</option><option value="kr">KR</option><option value="ru">RU</option><option value="sa">SA</option>
+        </select>
+        <button class="btn" id="btn-live"></button>
+      </div>
+      <div class="note" id="live-status"></div>
+    </div>
+  </div>
+
+  <div class="card" style="overflow-x:auto">
+    <table id="tbl">
+      <thead><tr>
+        <th id="th-lvl"></th><th>FS</th><th id="th-valks"></th><th id="th-chance"></th>
+        <th id="th-clicks"></th><th id="th-pity"></th><th id="th-crons"></th><th id="th-mats"></th>
+        <th id="th-cost"></th><th id="th-cum"></th><th id="th-oddspity"></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="note" id="n-model"></div>
+  </div>
+</main>
+<div id="toast"></div>
+<footer style="max-width:1180px;margin:0 auto;padding:0 14px 30px">
+  <span id="ft"></span> ·
+  <a href="https://www.blackdesertfoundry.com/kharazad-accessories-guide/" target="_blank" rel="noopener">BDFoundry</a> ·
+  <a href="https://api.arsha.io" target="_blank" rel="noopener">arsha.io</a> · © Pearl Abyss
+</footer>
+<script>
+// ── Oyun sabitleri / Game constants (oyun içi resmi değerler)
+// levels: [ad, taban şans %, pity, cron/tık, malzeme adedi, fail FS kazanımı, malzeme anahtarı]
+const ITEMS={
+kharazad:{tr:"Kharazad Aksesuarları",en:"Kharazad Accessories",
+  mats:{essence:{tr:"Şafak Özü (Essence of Dawn)",en:"Essence of Dawn",id:820979,def:40000000},
+        dawnbs:{tr:"Şafak Kara Taşı (Dawn Black Stone)",en:"Dawn Black Stone",id:820984,def:600000000}},
+  levels:[["PRI",16.3,3,0,1,1,"essence"],["DUO",7.3,5,120,2,1,"essence"],["TRI",4.57,7,280,3,1,"essence"],
+          ["TET",2.89,8,540,4,1,"essence"],["PEN",1.91,10,840,6,1,"essence"],["HEX",1.29,12,1090,8,1,"essence"],
+          ["SEP",0.88,15,1480,10,1,"essence"],["OCT",0.57,20,1880,12,1,"essence"],["NOV",0.32,25,2850,15,1,"essence"],
+          ["DEC",0.172,30,3650,1,1,"dawnbs"]]},
+sovereign:{tr:"Sovereign Silahları",en:"Sovereign Weapons",
+  mats:{origin:{tr:"Karanlık Açlığın Kökeni (Origin of Dark Hunger)",en:"Origin of Dark Hunger",id:820934,def:1080000000}},
+  levels:[["PRI",8.55,3,0,1,2,"origin"],["DUO",4.12,5,320,1,3,"origin"],["TRI",2,10,560,1,4,"origin"],
+          ["TET",0.91,20,780,1,5,"origin"],["PEN",0.469,30,970,1,6,"origin"],["HEX",0.273,35,1350,1,7,"origin"],
+          ["SEP",0.16,50,1550,1,8,"origin"],["OCT",0.1075,75,2250,1,9,"origin"],["NOV",0.0485,165,2760,1,10,"origin"],
+          ["DEC",0.0242,330,3920,1,11,"origin"]]},
+edana:{tr:"Edana Zırhları (Edania)",en:"Edana Armor (Edania)",
+  mats:{stone:{tr:"Edania Zırh Taşı (Edania Armor Stone)",en:"Edania Armor Stone",id:821249,def:10000000}},
+  levels:[["PRI",5.3,2,0,1,2,"stone"],["DUO",2.95,3,890,1,3,"stone"],["TRI",1.65,5,910,1,4,"stone"],
+          ["TET",1.1,8,940,1,5,"stone"],["PEN",0.5945,11,970,1,6,"stone"],["HEX",0.238,22,1320,1,7,"stone"],
+          ["SEP",0.19,25,1760,1,8,"stone"],["OCT",0.156,30,2250,1,9,"stone"],["NOV",0.0705,65,2760,1,10,"stone"],
+          ["DEC",0.0485,85,3280,1,11,"stone"]]}
+};
+const DEF_FS=[120,165,220,250,275,300,310,310,310,310];
+const CRON_DEF=3000000;
+const ROM=["I","II","III","IV","V","VI","VII","VIII","IX","X"];
+
+// ── i18n
+const L10N={
+tr:{nvMap:"Harita",nvEnh:"Geliştirme",nvFs:"FS Maliyeti",nvLs:"Yaşam Becerisi",
+ h1:"Geliştirme Hesaplayıcı",sub:"X-seviye sistemi (PRI–DEC): şans, pity ve ortalama maliyet — cron'lu tıklama varsayılır, fiyatlar düzenlenebilir.",
+ item:"Geliştirilecek item",start:"Başlangıç seviyesi",goal:"Hedef seviye",valks:"Valks FS bonusu",baseCost:"Başlangıç item maliyeti (ops.)",
+ cron:"Cron Taşı fiyatı",live:"Canlı fiyat çek",liveWait:"Pazar fiyatları çekiliyor…",liveOk:"Canlı fiyatlar yüklendi",
+ liveFail:"Canlı fiyat alınamadı (API meşgul olabilir) — elle girilen fiyatlar kullanılıyor",
+ base:"Başlangıç",lvl:"Seviye",valksTh:"Valks",chance:"Şans",clicks:"Ort. tık",pity:"Pity",crons:"Ort. cron",mats:"Ort. malzeme",
+ cost:"Ort. seviye maliyeti",cum:"Kümülatif",oddspity:"Pity olasılığı",total:"TOPLAM",
+ formula:"Şans = taban × (1 + FS/10). Pity: tabloda yazan sayıda başarısızlıktan sonraki tık garantidir.",
+ model:"Model: her tıkta aynı FS ile girildiği varsayılır; her tık cron + malzeme tüketir (başarılı tık dahil). Cron kullanıldığı için seviye düşmez. Ort. tık pity dahil hesaplanır. Kümülatif toplam, seçilen başlangıç→hedef aralığının toplamıdır.",
+ ft:"Veriler oyun içi resmi değerlerdir; kod bu siteye özeldir."},
+en:{nvMap:"Map",nvEnh:"Enhancement",nvFs:"FS Cost",nvLs:"Lifeskill",
+ h1:"Enhancement Calculator",sub:"X-level system (PRI–DEC): chance, pity and average cost — cron clicks assumed, prices editable.",
+ item:"Item to enhance",start:"Starting level",goal:"Goal level",valks:"Valks FS bonus",baseCost:"Base item cost (opt.)",
+ cron:"Cron Stone price",live:"Fetch live prices",liveWait:"Fetching market prices…",liveOk:"Live prices loaded",
+ liveFail:"Could not fetch live prices (API may be busy) — using manual prices",
+ base:"Base",lvl:"Level",valksTh:"Valks",chance:"Chance",clicks:"Avg. clicks",pity:"Pity",crons:"Avg. crons",mats:"Avg. mats",
+ cost:"Avg. level cost",cum:"Cumulative",oddspity:"Pity odds",total:"TOTAL",
+ formula:"Chance = base × (1 + FS/10). Pity: the click after the listed number of fails is guaranteed.",
+ model:"Model: assumes you re-enter with the same FS each click; every click consumes crons + materials (including the successful one). Crons prevent level drops. Avg. clicks includes pity. Cumulative sums the selected start→goal range.",
+ ft:"Game values are official in-game numbers; code is original to this site."}};
+let lang='tr';
+try{const s=localStorage.getItem('bdo_tachyon_lang');if(s==='en'||s==='tr')lang=s;}catch(e){}
+const T=()=>L10N[lang];
+
+// ── Durum / State
+const S={item:'kharazad',start:0,goal:10,valks:10,fs:DEF_FS.slice(),useValks:Array(10).fill(true),
+        prices:{cron:CRON_DEF},baseCost:0};
+try{const st=JSON.parse(localStorage.getItem('bdo_enh_v1')||'{}');Object.assign(S,st);}catch(e){}
+if(!ITEMS[S.item])S.item='kharazad';
+const save=()=>{try{localStorage.setItem('bdo_enh_v1',JSON.stringify(S));}catch(e){}};
+const priceOf=k=>{const it=ITEMS[S.item];const m=it.mats[k];return S.prices[S.item+'_'+k]??m.def;};
+
+// ── Motor / Engine
+function chance(base,fs){return Math.min(90,base*(1+fs/10));}
+function levelStats(i){
+  const it=ITEMS[S.item];
+  const [nm,base,pity,cron,qty,fsGain,matKey]=it.levels[i];
+  const fsEff=S.fs[i]+(S.useValks[i]?+S.valks:0);
+  const p=chance(base,fsEff)/100;
+  let E=0,q=1;
+  for(let k=1;k<=pity;k++){E+=k*q*p;q*=(1-p);}
+  E+=(pity+1)*q; // garantili tık / guaranteed click
+  const pPity=Math.pow(1-p,pity);
+  const clickCost=cron*S.prices.cron+qty*priceOf(matKey);
+  return{nm,base,pity,cron,qty,matKey,fsEff,p,E,pPity,cost:E*clickCost,crons:E*cron,mats:E*qty};
+}
+
+// ── Biçim / Format
+const fmt=n=>Math.round(n).toLocaleString(lang==='en'?'en-US':'tr-TR');
+const fmtPct=p=>(p*100).toLocaleString(lang==='en'?'en-US':'tr-TR',{maximumFractionDigits:2})+' %';
+
+// ── Render
+function buildSelectors(){
+  const t=T();
+  const st=document.getElementById('start'),go=document.getElementById('goal');
+  st.innerHTML='';go.innerHTML='';
+  const it=ITEMS[S.item];
+  const bo=document.createElement('option');bo.value=0;bo.textContent=t.base;st.appendChild(bo);
+  it.levels.forEach((L,i)=>{
+    if(i<it.levels.length-1){const o=document.createElement('option');o.value=i+1;o.textContent=`${L[0]} (${ROM[i]})`;st.appendChild(o);}
+    const o2=document.createElement('option');o2.value=i+1;o2.textContent=`${L[0]} (${ROM[i]})`;go.appendChild(o2);
+  });
+  st.value=Math.min(S.start,it.levels.length-1);go.value=Math.max(S.goal,+st.value+1);
+  S.start=+st.value;S.goal=+go.value;
+}
+function buildPrices(){
+  const t=T(),it=ITEMS[S.item];
+  document.getElementById('p-cron').value=S.prices.cron;
+  const box=document.getElementById('mat-prices');
+  box.innerHTML='';
+  for(const k in it.mats){
+    const m=it.mats[k];
+    const row=document.createElement('div');row.className='price-row';
+    row.innerHTML=`<span class="nm">${lang==='en'?m.en:m.tr}</span>`;
+    const inp=document.createElement('input');inp.type='number';inp.min=0;inp.step=100000;inp.value=priceOf(k);
+    inp.oninput=()=>{S.prices[S.item+'_'+k]=+inp.value||0;save();renderTable();};
+    row.appendChild(inp);box.appendChild(row);
+  }
+}
+function renderTable(){
+  const t=T(),it=ITEMS[S.item];
+  const tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  let cum=+S.baseCost||0,cumC=0,cumM=0;
+  it.levels.forEach((L,i)=>{
+    const lv=i+1;
+    const s=levelStats(i);
+    const inRange=lv>S.start&&lv<=S.goal;
+    if(inRange){cum+=s.cost;cumC+=s.crons;cumM+=s.mats;}
+    const tr=document.createElement('tr');
+    if(!inRange)tr.className='outside';
+    tr.innerHTML=`<td class="lvl">${s.nm} (${ROM[i]})</td>
+      <td><input class="fs" type="number" min="0" max="400" value="${S.fs[i]}" data-i="${i}"></td>
+      <td><input type="checkbox" data-v="${i}" ${S.useValks[i]?'checked':''}></td>
+      <td>${fmtPct(s.p)}</td>
+      <td>${s.E.toLocaleString(lang==='en'?'en-US':'tr-TR',{maximumFractionDigits:2})}</td>
+      <td>${s.pity}</td>
+      <td>${fmt(s.crons)}</td>
+      <td>${fmt(s.mats)}</td>
+      <td>${fmt(s.cost)}</td>
+      <td>${inRange?fmt(cum):'—'}</td>
+      <td>${fmtPct(s.pPity)}</td>`;
+    tb.appendChild(tr);
+  });
+  const tr=document.createElement('tr');tr.className='total';
+  tr.innerHTML=`<td>${t.total}</td><td></td><td></td><td></td><td></td><td></td>
+    <td>${fmt(cumC)}</td><td>${fmt(cumM)}</td><td></td><td class="ok">${fmt(cum)}</td><td></td>`;
+  tb.appendChild(tr);
+  tb.querySelectorAll('input.fs').forEach(inp=>{
+    inp.oninput=()=>{S.fs[+inp.dataset.i]=Math.max(0,Math.min(400,+inp.value||0));save();renderTable();};
+  });
+  tb.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange=()=>{S.useValks[+cb.dataset.v]=cb.checked;save();renderTable();};
+  });
+}
+function applyLang(){
+  const t=T();
+  document.title=(lang==='en'?'Enhancement Calculator — BDO':'Geliştirme Hesaplayıcı — BDO');
+  document.documentElement.lang=lang;
+  const set=(id,v)=>document.getElementById(id).textContent=v;
+  set('nv-map',t.nvMap);set('nv-enh',t.nvEnh);set('nv-fs',t.nvFs);set('nv-ls',t.nvLs);
+  set('h1',t.h1);set('sub',t.sub);
+  set('l-item',t.item);set('l-start',t.start);set('l-goal',t.goal);set('l-valks',t.valks);set('l-base-cost',t.baseCost);
+  set('l-cron',t.cron);set('btn-live',t.live);
+  set('th-lvl',t.lvl);set('th-valks',t.valksTh);set('th-chance',t.chance);set('th-clicks',t.clicks);
+  set('th-pity',t.pity);set('th-crons',t.crons);set('th-mats',t.mats);set('th-cost',t.cost);set('th-cum',t.cum);set('th-oddspity',t.oddspity);
+  set('n-formula',t.formula);set('n-model',t.model);set('ft',t.ft);
+  document.getElementById('lang-tr').classList.toggle('on',lang==='tr');
+  document.getElementById('lang-en').classList.toggle('on',lang==='en');
+  // item adları / item names
+  const sel=document.getElementById('item');
+  [...sel.options].forEach(o=>{if(ITEMS[o.value])o.textContent=lang==='en'?ITEMS[o.value].en:ITEMS[o.value].tr;});
+  buildSelectors();buildPrices();renderTable();
+}
+function setLang(l){lang=l;try{localStorage.setItem('bdo_tachyon_lang',l);}catch(e){}applyLang();}
+document.getElementById('lang-tr').onclick=()=>setLang('tr');
+document.getElementById('lang-en').onclick=()=>setLang('en');
+
+// ── Kontroller / Controls
+const el=id=>document.getElementById(id);
+el('item').value=S.item;
+el('item').onchange=()=>{S.item=el('item').value;S.start=0;S.goal=ITEMS[S.item].levels.length;save();applyLang();};
+el('start').onchange=()=>{S.start=+el('start').value;if(S.goal<=S.start)S.goal=S.start+1;save();buildSelectors();renderTable();};
+el('goal').onchange=()=>{S.goal=+el('goal').value;if(S.goal<=S.start){S.start=S.goal-1;}save();buildSelectors();renderTable();};
+el('valks').value=S.valks;
+el('valks').onchange=()=>{S.valks=+el('valks').value;save();renderTable();};
+el('baseCost').value=S.baseCost;
+el('baseCost').oninput=()=>{S.baseCost=+el('baseCost').value||0;save();renderTable();};
+el('p-cron').oninput=()=>{S.prices.cron=+el('p-cron').value||0;save();renderTable();};
+
+// ── Canlı fiyat / Live prices (arsha.io)
+let toastT;
+function toast(m){const e=el('toast');e.textContent=m;e.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>e.style.opacity=0,2500);}
+el('btn-live').onclick=async()=>{
+  const t=T(),it=ITEMS[S.item],reg=el('region').value;
+  el('live-status').textContent=t.liveWait;
+  try{
+    const ids=Object.values(it.mats).map(m=>m.id);
+    const q=ids.map(i=>'id='+i).join('&');
+    const r=await fetch(`https://api.arsha.io/v2/${reg}/item?${q}&lang=en`);
+    if(!r.ok)throw new Error('http '+r.status);
+    const data=await r.json();
+    const arr=Array.isArray(data)?data:[data];
+    let n=0;
+    for(const k in it.mats){
+      const m=it.mats[k];
+      const hit=arr.find(x=>x&&(x.id===m.id||x.mainKey===m.id));
+      const price=hit&&(hit.basePrice??hit.pricePerOne??hit.lastSoldPrice);
+      if(price>0){S.prices[S.item+'_'+k]=price;n++;}
+    }
+    if(!n)throw new Error('no data');
+    save();buildPrices();renderTable();
+    el('live-status').textContent='';toast(t.liveOk);
+  }catch(e){el('live-status').textContent='';toast(t.liveFail);}
+};
+
+applyLang();
+</script>
+</html>

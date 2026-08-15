@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<!--
+  BDO Araçları — Failstack (FS) Maliyet Hesaplayıcı / Failstack Cost Calculator
+  Veri kaynakları / Data sources:
+    - https://grumpygreen.cricket/bdo-failstack-chart/        (+14→+15 Reblath: 0 FS'te %2.00 başarı, FS başına +%0.20)
+    - https://grumpygreen.cricket/failstack/                  (softcap ~%70, Reblath yöntemi, Advice of Valks kaynakları)
+    - https://grumpygreen.cricket/devour/                     (Devour FS kazanç tablosu, FS ≤ 200 şartı)
+    - https://www.blackdesertfoundry.com/enchanting-and-sockets-guide/  (%2.00 taban / +%0.20 doğrulaması; fail başına -5 max dayanıklılık; kopya onarımı +10)
+    - https://garmoth.com/enhancing-simulator/dark-hunger     (Origin of Dark Hunger FS kazanç tablosu, birebir)
+    - https://garmoth.com/guides/post/bdo-basics-origin-of-dark-hunger  (Origin ≥100 FS şartı, Faint Origin değerleri)
+  Notlar / Notes:
+    - Softcap sonrası FS başına artış (%0.02) ve %90 üst sınır topluluk verisidir, "yaklaşık" olarak işaretlenmiştir.
+    - Faint Origin kazançları Origin'in ~yarısı olarak modellenmiştir (kaynak uç değerleriyle tutarlı), "yaklaşık".
+    - Sayfa çalışırken hiçbir ağ isteği yapmaz; tüm veriler gömülüdür.
+-->
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FS Maliyet Hesaplayıcı — BDO Araçları</title>
+<style>
+:root { --bg:#0d1117; --panel:#161b22; --line:#2b3440; --fg:#e6edf3; --dim:#8b949e; --accent:#ffd54a; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:13.5px/1.5 "Segoe UI", system-ui, sans-serif; }
+a { color:var(--fg); text-decoration:none; }
+#nav { position:sticky; top:0; z-index:50; display:flex; gap:14px; align-items:center; padding:8px 16px; background:var(--panel); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+#nav a { padding:4px 8px; border-radius:6px; }
+#nav a:hover { background:#21262d; }
+#nav a.here { color:var(--accent); }
+#nav button { font:inherit; color:var(--fg); background:#21262d; border:1px solid var(--line); border-radius:6px; padding:3px 10px; cursor:pointer; }
+#nav button:hover { background:#30363d; }
+#nav button.on { background:#2d5a3d; border-color:#3d7a52; }
+main { max-width:1060px; margin:0 auto; padding:18px 16px 40px; }
+h1 { font-size:20px; margin:8px 0 4px; }
+h2 { font-size:15px; margin:0 0 10px; color:var(--accent); font-weight:600; }
+.sub { color:var(--dim); margin:0 0 16px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:10px 14px; }
+label.f { display:flex; flex-direction:column; gap:3px; font-size:12.5px; color:var(--dim); }
+input[type=number], select { font:inherit; color:var(--fg); background:#0d1117; border:1px solid var(--line); border-radius:6px; padding:5px 8px; width:100%; font-variant-numeric:tabular-nums; }
+input[type=number]:focus, select:focus { outline:none; border-color:var(--accent); }
+button.b { font:inherit; color:var(--fg); background:#21262d; border:1px solid var(--line); border-radius:6px; padding:4px 12px; cursor:pointer; }
+button.b:hover { background:#30363d; }
+button.b.on { background:#2d5a3d; border-color:#3d7a52; }
+.chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-top:6px; }
+.tile { background:#0d1117; border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+.tile .v { font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; }
+.tile .k { color:var(--dim); font-size:12px; }
+table { border-collapse:collapse; width:100%; margin-top:6px; }
+th, td { padding:5px 10px; text-align:left; border-bottom:1px solid var(--line); }
+th { color:var(--dim); font-weight:600; font-size:12.5px; }
+td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; }
+tr.best td { color:var(--accent); }
+.tag { display:inline-block; font-size:11px; color:var(--bg); background:var(--accent); border-radius:5px; padding:0 6px; margin-left:6px; vertical-align:middle; }
+.approx { display:inline-block; font-size:11px; color:var(--dim); border:1px solid var(--line); border-radius:5px; padding:0 5px; margin-left:5px; vertical-align:middle; }
+.note { color:var(--dim); font-size:12.5px; margin-top:8px; }
+details summary { cursor:pointer; color:var(--dim); margin:6px 0; }
+details summary:hover { color:var(--fg); }
+.warn { color:#e3b341; }
+footer { border-top:1px solid var(--line); color:var(--dim); padding:14px 16px; text-align:center; font-size:12.5px; }
+footer a { color:var(--dim); text-decoration:underline; }
+@media (max-width:640px){ .grid{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="index.html">🗺 <span data-i>Harita|Map</span></a>
+  <a href="enhancement.html">⚒ <span data-i>Geliştirme|Enhancement</span></a>
+  <a href="fs-cost.html" class="here">📈 <span data-i>FS Maliyeti|FS Cost</span></a>
+  <a href="carrack.html">⛵ Carrack</a>
+  <a href="lifeskill-buffs.html">🧪 <span data-i>Yaşam Becerisi|Lifeskill</span></a>
+  <span style="flex:1"></span>
+  <button id="lang-tr">TR</button><button id="lang-en">EN</button>
+</nav>
+
+<main>
+  <h1 data-i>Failstack (FS) Maliyet Hesaplayıcı|Failstack (FS) Cost Calculator</h1>
+  <p class="sub" data-i>Reblath (+14 → +15 fail yöntemi) ile hedef FS'e ulaşmanın beklenen maliyetini hesaplar; Origin of Dark Hunger, Devour ve Advice of Valks alternatifleriyle karşılaştırır.|Calculates the expected cost of reaching a target failstack with Reblath (+14 → +15 fail method) and compares it with Origin of Dark Hunger, Devour and Advice of Valks alternatives.</p>
+
+  <div class="card">
+    <h2 data-i>Hedef|Target</h2>
+    <div class="grid">
+      <label class="f"><span data-i>Hedef failstack|Target failstack</span>
+        <input type="number" id="in-target" min="1" max="400" step="1" value="110"></label>
+      <label class="f"><span data-i>Başlangıç FS (bedava stack, valks vb.)|Starting FS (free stacks, valks etc.)</span>
+        <input type="number" id="in-start" min="0" max="399" step="1" value="0"></label>
+    </div>
+    <div class="chips" id="chips"></div>
+    <p class="note" data-i>İpucu: Etkinlikten Advice of Valks (+100) gibi bir hazır stack'in varsa onu "Başlangıç FS" olarak gir — plan karşılaştırması da bunu ayrıca gösterir.|Tip: If you own a ready stack such as an event Advice of Valks (+100), enter it as "Starting FS" — the plan comparison also shows this path separately.</p>
+  </div>
+
+  <div class="card">
+    <h2><span data-i>Fiyatlar|Prices</span> <span class="approx" data-i>düzenlenebilir, kaydedilir|editable, saved</span></h2>
+    <div class="grid">
+      <label class="f"><span><span data-i>Black Stone (silver)|Black Stone (silver)</span><span class="approx" data-i>yaklaşık|approx.</span></span>
+        <input type="number" id="p-stone" min="0" step="1000" value="150000"></label>
+      <label class="f"><span><span data-i>Reblath kopyası (onarım, silver)|Reblath duplicate (repair, silver)</span><span class="approx" data-i>yaklaşık|approx.</span></span>
+        <input type="number" id="p-dup" min="0" step="1000" value="15000"></label>
+      <label class="f"><span><span data-i>Memory Fragment (silver)|Memory Fragment (silver)</span><span class="approx" data-i>yaklaşık|approx.</span></span>
+        <input type="number" id="p-frag" min="0" step="10000" value="400000"></label>
+      <label class="f"><span><span data-i>Origin of Dark Hunger (silver)|Origin of Dark Hunger (silver)</span><span class="approx" data-i>yaklaşık|approx.</span></span>
+        <input type="number" id="p-origin" min="0" step="1000000" value="30000000"></label>
+      <label class="f"><span><span data-i>Faint Origin of Dark Hunger (silver)|Faint Origin of Dark Hunger (silver)</span><span class="approx" data-i>yaklaşık|approx.</span></span>
+        <input type="number" id="p-faint" min="0" step="1000000" value="12000000"></label>
+      <label class="f"><span data-i>Onarım yöntemi|Repair method</span>
+        <select id="p-repmode">
+          <option value="dup" data-i>Reblath kopyası (+10 dayanıklılık)|Reblath duplicate (+10 durability)</option>
+          <option value="frag" data-i>Memory Fragment|Memory Fragment</option>
+        </select></label>
+      <label class="f" id="fragdur-wrap" style="display:none"><span><span data-i>Fragment başına dayanıklılık|Durability per fragment</span><span class="approx" data-i>yaklaşık|approx.</span></span>
+        <input type="number" id="p-fragdur" min="1" max="10" step="1" value="10"></label>
+    </div>
+    <div class="chips"><button class="b" id="btn-reset" data-i>Varsayılanlara dön|Reset to defaults</button></div>
+    <p class="note" data-i>Fiyatlar sunucuya/pazara göre değişir; kendi pazar fiyatlarını gir. Değerler tarayıcında saklanır.|Prices vary by server/market; enter your own marketplace prices. Values are stored in your browser.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-i>Reblath (+14 → +15) beklenen maliyet|Reblath (+14 → +15) expected cost</h2>
+    <div class="tiles" id="tiles"></div>
+    <p class="note" id="model-note"></p>
+  </div>
+
+  <div class="card">
+    <h2 data-i>Plan karşılaştırması|Plan comparison</h2>
+    <table id="plans"><thead><tr>
+      <th data-i>Plan|Plan</th><th data-i>Açıklama|Description</th><th class="n" data-i>Beklenen maliyet|Expected cost</th>
+    </tr></thead><tbody></tbody></table>
+    <p class="note" id="plan-note"></p>
+  </div>
+
+  <div class="card">
+    <h2 data-i>FS bazında ayrıntı|Per-FS detail</h2>
+    <table id="detail"><thead><tr>
+      <th class="n">FS</th>
+      <th class="n" data-i>+15 başarı % (fail istersin)|+15 success % (you want a fail)</th>
+      <th class="n" data-i>Bu FS'in marjinal maliyeti|Marginal cost of this FS</th>
+      <th class="n" data-i>Buraya kadar toplam|Cumulative to here</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="card">
+    <h2 data-i>Hazır stack alternatifleri|Ready-made stack alternatives</h2>
+    <table><thead><tr>
+      <th data-i>Yöntem|Method</th><th data-i>FS aralığı|FS range</th><th data-i>Kısa öneri|Quick advice</th>
+    </tr></thead><tbody>
+      <tr><td data-i>Reblath +14→+15|Reblath +14→+15</td><td class="n">0 – ~100</td><td data-i>En ucuz temel yöntem; düşük FS'te fail şansı çok yüksek.|Cheapest baseline; fail chance is very high at low FS.</td></tr>
+      <tr><td data-i>Advice of Valks (etkinlik/loyalty)|Advice of Valks (event/loyalty)</td><td class="n" data-i>değişken|varies</td><td data-i>Etkinlik ve loyalty kaynaklı hazır stack'ler bedavaya en iyisi; FS 0 iken kullanılır. Blacksmith's Secret Book ile kendi stack'ini de saklayabilirsin.|Free event/loyalty stacks are the best value; used at 0 FS. You can also store your own stack with a Blacksmith's Secret Book.</td></tr>
+      <tr><td>Devour</td><td class="n">≤ 200</td><td data-i>Elinde kristalsiz/Caphras'sız artırılmış ekipman varsa büyük sıçrama: zırh PRI +25, DUO +30, TRI +40, TET +50, PEN +70 FS (silahta biraz daha fazla). Mevcut FS 200'ün üzerindeyse kullanılamaz.|Big jumps if you have spare enhanced gear without crystals/Caphras: armor PRI +25, DUO +30, TRI +40, TET +50, PEN +70 FS (slightly more for weapons). Cannot be used above 200 current FS.</td></tr>
+      <tr><td>Origin of Dark Hunger</td><td class="n">100 – 300</td><td id="cx-cell"></td></tr>
+      <tr><td>Faint Origin of Dark Hunger</td><td class="n">100 – 300</td><td data-i>Origin'in ucuz versiyonu (~yarım kazanç); fiyat/FS oranı iyiyse tercih et.|Cheaper variant of Origin (~half the gain); pick it when its price per FS is better.</td></tr>
+      <tr><td data-i>300 üzeri|Above 300</td><td class="n">300+</td><td data-i>Origin'ler 300'de durur; 300 üzeri stack'ler pratikte özel etkinlik valks'ları ve devour ile yapılır, Reblath ile beklenen maliyet astronomiktir.|Origins stop at 300; stacks above 300 are practically built with special event valks and devour — the Reblath expected cost is astronomical.</td></tr>
+    </tbody></table>
+
+    <details>
+      <summary data-i>Origin of Dark Hunger kazanç tablosu (birebir kaynak verisi)|Origin of Dark Hunger gain table (exact source data)</summary>
+      <table id="origin-table"><thead><tr>
+        <th class="n" data-i>Mevcut FS|Current FS</th><th class="n">Origin</th><th class="n">Faint <span class="approx" data-i>yaklaşık|approx.</span></th>
+      </tr></thead><tbody></tbody></table>
+    </details>
+
+    <details>
+      <summary data-i>Devour kazanç tablosu|Devour gain table</summary>
+      <table><thead><tr><th data-i>Seviye|Level</th><th class="n" data-i>Zırh FS|Armor FS</th><th class="n" data-i>Silah FS|Weapon FS</th></tr></thead>
+      <tbody>
+        <tr><td>PRI (I)</td><td class="n">+25</td><td class="n">+28</td></tr>
+        <tr><td>DUO (II)</td><td class="n">+30</td><td class="n">+33</td></tr>
+        <tr><td>TRI (III)</td><td class="n">+40</td><td class="n">+43</td></tr>
+        <tr><td>TET (IV)</td><td class="n">+50</td><td class="n">+53</td></tr>
+        <tr><td>PEN (V)</td><td class="n">+70</td><td class="n">+75</td></tr>
+      </tbody></table>
+      <p class="note" data-i>+6…+15 arası ekipman +3…+16 FS verir. Kristalli veya Caphras'lı eşyalar devour edilemez; mevcut FS 200'ü aşamaz. Değerler topluluk verisidir (yaklaşık).|Gear from +6…+15 gives +3…+16 FS. Items with crystals or Caphras cannot be devoured; current FS must be ≤ 200. Values are community data (approximate).</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2 data-i>Model ve varsayımlar|Model and assumptions</h2>
+    <ul class="note" style="margin:4px 0; padding-left:18px">
+      <li data-i>+14 → +15 Reblath başarı şansı: 0 FS'te %2.00, FS başına +%0.20 (doğrulanmış topluluk verisi).|+14 → +15 Reblath success chance: 2.00% at 0 FS, +0.20% per FS (verified community data).</li>
+      <li data-i>Softcap: şans %70'e ulaştıktan sonra (≈340 FS) FS başına artış %0.02'ye düşer, üst sınır %90 — bu kısım yaklaşıktır.|Softcap: after the chance reaches 70% (≈340 FS) the per-FS gain drops to 0.02%, hard cap 90% — this part is approximate.</li>
+      <li data-i>Her fail: -5 max dayanıklılık ve 1 Black Stone; kopya onarımı +10 max dayanıklılık (doğrulanmış). Yani ~2 fail başına 1 kopya.|Each fail: -5 max durability and 1 Black Stone; duplicate repair restores +10 max durability (verified). So ~1 duplicate per 2 fails.</li>
+      <li data-i>Başarı (istemediğin +15) stack'ini SIFIRLAR ve model başlangıç FS'ine dönersin; bu Markov beklenen değeriyle hesaplanır. Yan ürün +15 Reblath'ların küçük değeri (geri düşürme stack'i) hesaba katılmaz.|A success (the +15 you don't want) CONSUMES your stack and the model returns to the starting FS; computed as a Markov expected value. The small value of by-product +15 Reblaths (downgrade stacks) is not counted.</li>
+      <li data-i>Memory Fragment onarımı normalde boss ekipmanı içindir; Reblath için kopya onarımı standarttır. Fragment başına dayanıklılık değeri yaklaşık olarak işaretlendi.|Memory Fragment repair is normally for boss gear; duplicate repair is standard for Reblath. Durability per fragment is marked approximate.</li>
+      <li data-i>Faint Origin kazançları kaynakta tam tablo olmadığı için Origin'in yarısı (yukarı yuvarlanmış) olarak modellendi — uç değerlerle tutarlı, yaklaşık.|Faint Origin gains are modeled as half of Origin (rounded up) since no full table exists in sources — consistent with the endpoints, approximate.</li>
+    </ul>
+  </div>
+</main>
+
+<footer>
+  <span data-i>Veriler topluluk kaynaklarından derlenmiştir · © Pearl Abyss|Data compiled from community sources · © Pearl Abyss</span><br>
+  <a href="https://grumpygreen.cricket/bdo-failstack-chart/" target="_blank" rel="noopener">GrumpyG</a> ·
+  <a href="https://www.blackdesertfoundry.com/enchanting-and-sockets-guide/" target="_blank" rel="noopener">BDFoundry</a> ·
+  <a href="https://garmoth.com/enhancing-simulator/dark-hunger" target="_blank" rel="noopener">Garmoth</a>
+</footer>
+
+<script>
+'use strict';
+/* ---------- i18n ---------- */
+var LANG_KEY = 'bdo_tachyon_lang';
+var lang = 'tr';
+try { var s = localStorage.getItem(LANG_KEY); if (s === 'en' || s === 'tr') lang = s; } catch (e) {}
+function initI18n() {
+  document.querySelectorAll('[data-i]').forEach(function (el) {
+    if (!el.getAttribute('data-i')) el.setAttribute('data-i', el.textContent.trim());
+  });
+}
+function T(tr, en) { return lang === 'tr' ? tr : en; }
+function applyLang() {
+  document.querySelectorAll('[data-i]').forEach(function (el) {
+    var pair = el.getAttribute('data-i').split('|');
+    el.textContent = lang === 'tr' ? pair[0] : (pair[1] !== undefined ? pair[1] : pair[0]);
+  });
+  document.documentElement.lang = lang;
+  document.title = T('FS Maliyet Hesaplayıcı — BDO Araçları', 'FS Cost Calculator — BDO Tools');
+  document.getElementById('lang-tr').classList.toggle('on', lang === 'tr');
+  document.getElementById('lang-en').classList.toggle('on', lang === 'en');
+  recalc();
+}
+function setLang(l) {
+  lang = l;
+  try { localStorage.setItem(LANG_KEY, l); } catch (e) {}
+  applyLang();
+}
+document.getElementById('lang-tr').addEventListener('click', function () { setLang('tr'); });
+document.getElementById('lang-en').addEventListener('click', function () { setLang('en'); });
+
+/* ---------- settings (localStorage) ---------- */
+var SET_KEY = 'bdo_tachyon_fscost_v1';
+var DEFAULTS = { stone: 150000, dup: 15000, frag: 400000, origin: 30000000, faint: 12000000, repmode: 'dup', fragdur: 10, target: 110, start: 0 };
+var FIELDS = { stone: 'p-stone', dup: 'p-dup', frag: 'p-frag', origin: 'p-origin', faint: 'p-faint', repmode: 'p-repmode', fragdur: 'p-fragdur', target: 'in-target', start: 'in-start' };
+function loadSettings() {
+  var st = {};
+  try { st = JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { st = {}; }
+  Object.keys(FIELDS).forEach(function (k) {
+    var v = (st[k] !== undefined && st[k] !== null) ? st[k] : DEFAULTS[k];
+    document.getElementById(FIELDS[k]).value = v;
+  });
+}
+function saveSettings() {
+  var st = {};
+  Object.keys(FIELDS).forEach(function (k) {
+    var el = document.getElementById(FIELDS[k]);
+    st[k] = (k === 'repmode') ? el.value : Number(el.value);
+  });
+  try { localStorage.setItem(SET_KEY, JSON.stringify(st)); } catch (e) {}
+}
+function getNum(id, def, min, max) {
+  var v = Number(document.getElementById(id).value);
+  if (!isFinite(v)) v = def;
+  return Math.min(max, Math.max(min, v));
+}
+
+/* ---------- game data ---------- */
+// +14→+15 Reblath: %2.00 taban, FS başına +%0.20 (doğrulanmış). Softcap %70 sonrası +%0.02, üst sınır %90 (yaklaşık).
+var BASE = 2.0, PER = 0.2, SOFT = 70, POST = 0.02, HARD = 90;
+var SOFT_FS = Math.ceil((SOFT - BASE) / PER); // 340
+function chance(fs) { // % success at this FS
+  var c = fs <= SOFT_FS ? BASE + PER * fs : SOFT + POST * (fs - SOFT_FS);
+  return Math.min(HARD, c);
+}
+var DUR_PER_FAIL = 5; // regular Black Stone fail: -5 max durability (doğrulanmış)
+
+// Origin of Dark Hunger — birebir kaynak tablosu (garmoth.com/enhancing-simulator/dark-hunger)
+var ORIGIN_TABLE = [
+  [100,101,26],[102,105,25],[106,108,24],[109,111,23],[112,115,22],[116,119,21],
+  [120,124,20],[125,129,19],[130,135,18],[136,141,17],[142,148,16],[149,156,15],
+  [157,165,14],[166,175,13],[176,187,12],[188,196,11],[197,206,10],[207,217,9],
+  [218,235,8],[236,254,7],[255,269,6],[270,291,5],[292,296,4],[297,297,3],[298,298,2],[299,299,1]
+];
+function originGain(fs) {
+  for (var i = 0; i < ORIGIN_TABLE.length; i++)
+    if (fs >= ORIGIN_TABLE[i][0] && fs <= ORIGIN_TABLE[i][1]) return ORIGIN_TABLE[i][2];
+  return 0; // <100 veya ≥300: kullanılamaz
+}
+function faintGain(fs) { var g = originGain(fs); return g > 0 ? Math.max(1, Math.ceil(g / 2)) : 0; } // yaklaşık
+
+/* ---------- expected cost model (Markov: fail → FS+1, success → reset to start) ---------- */
+// X(n) = x(n) + q(n)·X(n+1) + p(n)·X(start), X(target)=0  →  X(start) = a(start)/(1−b(start))
+function expectedFrom(start, target, costPerAttempt, repairPerFail) {
+  if (target <= start) return { attempts: 0, fails: 0, cost: 0 };
+  var aA = 0, bA = 0, aF = 0, bF = 0, aC = 0, bC = 0;
+  for (var n = target - 1; n >= start; n--) {
+    var p = chance(n) / 100, q = 1 - p;
+    aA = 1 + q * aA;                       bA = p + q * bA;
+    aF = q * (1 + aF);                     bF = p + q * bF;
+    aC = (costPerAttempt + q * repairPerFail) + q * aC; bC = p + q * bC;
+  }
+  return {
+    attempts: aA / (1 - bA),
+    fails: aF / (1 - bF),
+    cost: aC / (1 - bC)
+  };
+}
+
+/* ---------- formatting ---------- */
+function loc() { return lang === 'tr' ? 'tr-TR' : 'en-US'; }
+function fmtInt(n) {
+  if (!isFinite(n) || n > 1e15) return T('pratikte imkânsız', 'practically impossible');
+  return Math.round(n).toLocaleString(loc());
+}
+function fmtSilver(n) {
+  if (!isFinite(n) || n > 1e15) return T('pratikte imkânsız', 'practically impossible');
+  if (n >= 1e12) return (n / 1e12).toLocaleString(loc(), { maximumFractionDigits: 2 }) + T(' trilyon', ' trillion');
+  if (n >= 1e9) return (n / 1e9).toLocaleString(loc(), { maximumFractionDigits: 2 }) + T(' milyar', ' billion');
+  if (n >= 1e6) return (n / 1e6).toLocaleString(loc(), { maximumFractionDigits: 1 }) + T(' milyon', ' million');
+  return Math.round(n).toLocaleString(loc());
+}
+function fmtPct(n) { return n.toLocaleString(loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%'; }
+
+/* ---------- main calculation & render ---------- */
+function recalc() {
+  saveSettings();
+  var target = Math.round(getNum('in-target', 110, 1, 400));
+  var start = Math.round(getNum('in-start', 0, 0, 399));
+  if (start >= target) start = Math.max(0, target - 1) , document.getElementById('in-start').value = start;
+  var stone = getNum('p-stone', DEFAULTS.stone, 0, 1e12);
+  var dup = getNum('p-dup', DEFAULTS.dup, 0, 1e12);
+  var frag = getNum('p-frag', DEFAULTS.frag, 0, 1e12);
+  var originPrice = getNum('p-origin', DEFAULTS.origin, 0, 1e13);
+  var faintPrice = getNum('p-faint', DEFAULTS.faint, 0, 1e13);
+  var repmode = document.getElementById('p-repmode').value;
+  var fragdur = getNum('p-fragdur', 10, 1, 10);
+  document.getElementById('fragdur-wrap').style.display = repmode === 'frag' ? '' : 'none';
+
+  var repairPerFail = repmode === 'dup' ? dup * (DUR_PER_FAIL / 10) : frag * (DUR_PER_FAIL / fragdur);
+  var r = expectedFrom(start, target, stone, repairPerFail);
+  var succ = Math.max(0, r.attempts - r.fails);
+
+  // reblath'ı bırakma noktası: marjinal FS maliyeti, Origin'in en iyi FS-başı fiyatını (fiyat/26) aştığı ilk FS
+  var stopAt = null, bestOriginPerFS = originPrice / 26;
+  var prev = 0;
+  for (var m = start; m < Math.min(400, Math.max(target, 160)); m++) {
+    var cNext = expectedFrom(start, m + 1, stone, repairPerFail).cost;
+    if (cNext - prev > bestOriginPerFS) { stopAt = m; break; }
+    prev = cNext;
+  }
+
+  // tiles
+  var tiles = [
+    [T('Hedefteki başarı şansı', 'Success chance at target'), fmtPct(chance(target)), T('FS ' + target + ' iken +15 denemesi', 'attempting +15 at FS ' + target)],
+    [T('Beklenen deneme', 'Expected attempts'), fmtInt(r.attempts), T('beklenen fail: ', 'expected fails: ') + fmtInt(r.fails)],
+    [T('Black Stone maliyeti', 'Black Stone cost'), fmtSilver(r.attempts * stone), fmtInt(r.attempts) + T(' taş', ' stones')],
+    [T('Onarım maliyeti', 'Repair cost'), fmtSilver(r.fails * repairPerFail), repmode === 'dup' ? T('Reblath kopyası ile', 'with Reblath duplicates') : 'Memory Fragment'],
+    [T('TOPLAM (Reblath)', 'TOTAL (Reblath)'), fmtSilver(r.cost), T('FS ' + start + ' → ' + target, 'FS ' + start + ' → ' + target)],
+    [T('Yan ürün +15', 'By-product +15s'), fmtInt(succ), T('istenmeyen başarı (stack sıfırlar)', 'unwanted successes (reset stack)')],
+    [T('Reblath’ı bırakma noktası', 'Where to stop Reblath'),
+      stopAt === null ? T('hedefe kadar uygun', 'fine up to target') : '~FS ' + stopAt,
+      T('marjinal maliyet Origin’in FS başı fiyatını aşınca (yaklaşık)', 'when marginal cost beats Origin’s per-FS price (approx.)')]
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(function (t) {
+    return '<div class="tile"><div class="v">' + t[1] + '</div><div class="k">' + t[0] + '</div><div class="k">' + t[2] + '</div></div>';
+  }).join('');
+  var noteEl = document.getElementById('model-note');
+  noteEl.innerHTML = '';
+  noteEl.textContent = T(
+    'Model: fail → FS+1, başarı → stack sıfırlanır ve başlangıç değerine (FS ' + start + ') dönülür (Markov beklenen değeri). Yüksek hedeflerde maliyetin patlaması, oradan sonra hazır stack araçlarının kullanılma sebebidir.',
+    'Model: fail → FS+1, success → stack is consumed and you return to FS ' + start + ' (Markov expected value). The cost explosion at high targets is exactly why ready-made stack items are used from there on.');
+  if (!isFinite(r.cost) || r.cost > 5e10) {
+    var w = document.createElement('div');
+    w.className = 'warn';
+    w.textContent = T(
+      'Uyarı: Bu hedef için saf Reblath yöntemi pratik değildir (istenmeyen +15 başarıları stack’i sürekli sıfırlar). Aşağıdaki plan karşılaştırmasındaki hazır stack yollarına bak.',
+      'Warning: pure Reblath is not practical for this target (unwanted +15 successes keep consuming the stack). See the ready-made stack paths in the plan comparison below.');
+    noteEl.appendChild(w);
+  }
+
+  // plans
+  var plans = [];
+  plans.push({ name: 'Reblath', desc: T('Sadece +14→+15 fail', 'Pure +14→+15 fails'), cost: r.cost });
+  if (target > 100) {
+    var pivot = Math.max(100, start);
+    [['Reblath → Origin', originPrice, originGain], ['Reblath → Faint Origin', faintPrice, faintGain]].forEach(function (pl) {
+      var f = pivot, cnt = 0;
+      while (f < target && f < 300) { var g = pl[2](f); if (g <= 0) break; f += g; cnt++; }
+      var base = expectedFrom(start, pivot, stone, repairPerFail).cost;
+      var rest = f < target ? expectedFrom(f, target, stone, repairPerFail).cost : 0; // 300 üzeri kalan kısım yine Reblath
+      var itemName = pl[0].indexOf('Faint') >= 0 ? 'Faint Origin' : 'Origin';
+      var head = pivot > start
+        ? T('Reblath: FS ' + start + ' → ' + pivot + ', sonra ' + cnt + ' × ' + itemName, 'Reblath: FS ' + start + ' → ' + pivot + ', then ' + cnt + ' × ' + itemName)
+        : T('Doğrudan ' + cnt + ' × ' + itemName, 'Directly ' + cnt + ' × ' + itemName);
+      var desc = head + (f < target
+        ? T(' + kalan kısım Reblath: FS ' + f + ' → ' + target, ' + remainder via Reblath: FS ' + f + ' → ' + target)
+        : T(' (ulaşılan FS: ' + f + ')', ' (reaches FS ' + f + ')'));
+      plans.push({ name: pl[0] + (pl[0].indexOf('Faint') >= 0 ? ' *' : ''), desc: desc, cost: base + cnt * pl[1] + rest, over: f > target ? f : 0 });
+    });
+    // Etkinlik Advice of Valks (+100) → Origin (valks bedava sayılır)
+    var fv = 100, cv = 0;
+    while (fv < target && fv < 300) { var gv = originGain(fv); if (gv <= 0) break; fv += gv; cv++; }
+    var restV = fv < target ? expectedFrom(fv, target, stone, repairPerFail).cost : 0;
+    plans.push({
+      name: 'Valks +100 → Origin **',
+      desc: T('Etkinlik Advice of Valks (+100) ile başla, sonra ' + cv + ' × Origin' + (fv < target ? ' + kalan kısım Reblath: FS ' + fv + ' → ' + target : ' (ulaşılan FS: ' + fv + ')'),
+              'Start with an event Advice of Valks (+100), then ' + cv + ' × Origin' + (fv < target ? ' + remainder via Reblath: FS ' + fv + ' → ' + target : ' (reaches FS ' + fv + ')')),
+      cost: cv * originPrice + restV
+    });
+  }
+  var best = plans.reduce(function (m, p) { return p.cost < m.cost ? p : m; }, plans[0]);
+  document.querySelector('#plans tbody').innerHTML = plans.map(function (p) {
+    return '<tr' + (p === best ? ' class="best"' : '') + '><td>' + p.name + (p === best ? '<span class="tag">' + T('en ucuz', 'cheapest') + '</span>' : '') +
+      '</td><td>' + p.desc + '</td><td class="n">' + fmtSilver(p.cost) + '</td></tr>';
+  }).join('');
+  document.getElementById('plan-note').textContent =
+    T('* Faint Origin kazançları yaklaşıktır. ** Valks planında etkinlik itemi bedava sayılır. Origin’ler yalnızca FS 100–299 arasında kullanılabilir ve hedefi biraz aşabilir (aşım bedavaya fazladan FS demektir). Devour buradaki maliyetleri daha da düşürebilir.',
+      '* Faint Origin gains are approximate. ** The Valks plan counts the event item as free. Origins only work between FS 100–299 and may overshoot the target slightly (overshoot = free extra FS). Devour can lower these costs further.');
+
+  // origin crossover advice (dynamic)
+  var cx = 0;
+  for (var f2 = 100; f2 < 300; f2++) {
+    var g2 = originGain(f2); if (g2 <= 0) continue;
+    var margReb = expectedFrom(start, f2 + 1, stone, repairPerFail).cost - expectedFrom(start, f2, stone, repairPerFail).cost;
+    if (originPrice / g2 < margReb) { cx = f2; break; }
+  }
+  document.getElementById('cx-cell').textContent = cx
+    ? T('Girdiğin fiyatlarla FS ~' + cx + '’den itibaren Origin, Reblath’tan daha ucuz (FS başına ' + fmtSilver(originPrice / originGain(cx)) + ').',
+        'With your prices, Origin becomes cheaper than Reblath from FS ~' + cx + ' (about ' + fmtSilver(originPrice / originGain(cx)) + ' per FS).')
+    : T('Girdiğin fiyatlarla 100–299 aralığında Reblath hâlâ daha ucuz görünüyor.', 'With your prices, Reblath still looks cheaper in the 100–299 range.');
+
+  // detail table
+  var rows = [], span = target - start;
+  var step = span <= 30 ? 1 : span <= 60 ? 5 : span <= 130 ? 10 : 20;
+  var prevCost = 0, prevFs = start;
+  for (var fs = start; fs < target; fs += step) rows.push(fs);
+  if (rows[rows.length - 1] !== target - 1) rows.push(target - 1);
+  var html = '';
+  rows.forEach(function (fs) {
+    var cum = expectedFrom(start, fs, stone, repairPerFail).cost;
+    var next = expectedFrom(start, fs + 1, stone, repairPerFail).cost;
+    html += '<tr><td class="n">' + fs + '</td><td class="n">' + fmtPct(chance(fs)) + '</td><td class="n">' +
+      fmtSilver(next - cum) + '</td><td class="n">' + fmtSilver(cum) + '</td></tr>';
+  });
+  document.querySelector('#detail tbody').innerHTML = html;
+}
+
+/* ---------- static tables & chips ---------- */
+(function buildOriginTable() {
+  var tb = document.querySelector('#origin-table tbody');
+  tb.innerHTML = ORIGIN_TABLE.map(function (r) {
+    var range = r[0] === r[1] ? String(r[0]) : r[0] + '–' + r[1];
+    return '<tr><td class="n">' + range + '</td><td class="n">+' + r[2] + '</td><td class="n">+' + Math.max(1, Math.ceil(r[2] / 2)) + '</td></tr>';
+  }).join('');
+})();
+(function buildChips() {
+  var wrap = document.getElementById('chips');
+  [110, 155, 210, 265, 300].forEach(function (v) {
+    var b = document.createElement('button');
+    b.className = 'b'; b.textContent = 'FS ' + v;
+    b.addEventListener('click', function () { document.getElementById('in-target').value = v; recalc(); });
+    wrap.appendChild(b);
+  });
+})();
+
+/* ---------- wire up ---------- */
+Object.keys(FIELDS).forEach(function (k) {
+  document.getElementById(FIELDS[k]).addEventListener('input', recalc);
+  document.getElementById(FIELDS[k]).addEventListener('change', recalc);
+});
+document.getElementById('btn-reset').addEventListener('click', function () {
+  Object.keys(FIELDS).forEach(function (k) { document.getElementById(FIELDS[k]).value = DEFAULTS[k]; });
+  recalc();
+});
+
+initI18n();
+loadSettings();
+applyLang(); /* applyLang -> recalc */
+</script>
+</body>
+</html>

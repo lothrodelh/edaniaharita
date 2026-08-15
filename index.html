@@ -51,6 +51,8 @@
   button.on { background:#2d5a3d; border-color:#3d7a52; }
   #topbar { position:absolute; top:12px; right:12px; z-index:4; display:flex; gap:6px; }
   #topbar button { flex:none; width:auto; padding:7px 12px; background:#161b22e6; backdrop-filter:blur(8px); border-radius:8px; }
+  #topbar a.tool { flex:none; display:flex; align-items:center; padding:7px 11px; background:#161b22e6; backdrop-filter:blur(8px); border:1px solid var(--line); border-radius:8px; color:var(--fg); text-decoration:none; font-size:12px; }
+  #topbar a.tool:hover { background:#30363d; }
   #topbar button.lang.on { background:#2d5a3d; border-color:#3d7a52; font-weight:700; }
   #credit { position:absolute; right:12px; bottom:10px; z-index:3; font-size:10.5px; color:#9aa6b2; text-shadow:0 1px 3px #000c; pointer-events:none; }
   #tip { position:absolute; pointer-events:none; padding:6px 9px; font-size:12px; background:#0d1117f2; border:1px solid var(--line); border-radius:7px; display:none; white-space:nowrap; z-index:5; }
@@ -80,6 +82,10 @@
 </style>
 <canvas id="map"></canvas>
 <div id="topbar">
+  <a class="tool" href="enhancement.html" id="tl-enh" title="Geliştirme Hesaplayıcı">⚒</a>
+  <a class="tool" href="fs-cost.html" id="tl-fs" title="FS Maliyeti">📈</a>
+  <a class="tool" href="carrack.html" title="Carrack">⛵</a>
+  <a class="tool" href="lifeskill-buffs.html" id="tl-ls" title="Yaşam Becerisi Bufları">🧪</a>
   <button class="lang" id="lang-tr">TR</button>
   <button class="lang" id="lang-en">EN</button>
   <button id="btn-fs">⛶</button>

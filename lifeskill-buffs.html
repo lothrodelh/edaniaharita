@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<!--
+  BDO Yaşam Becerisi Bufları / Lifeskill Buffs referans sayfası
+  Veri kaynakları / Data sources (erişim: 2026-08-15):
+    - https://www.blackdesertfoundry.com/life-skill-mastery/
+    - https://www.blackdesertfoundry.com/gathering-guide/
+    - https://www.blackdesertfoundry.com/fishing-guide/
+    - https://www.blackdesertfoundry.com/hunting-guide/
+    - https://www.blackdesertfoundry.com/cooking-guide/
+    - https://www.blackdesertfoundry.com/alchemy-guide/
+    - https://www.blackdesertfoundry.com/processing-guide/
+    - https://www.blackdesertfoundry.com/artifacts-and-lightstones-guide/
+    - https://garmoth.com/mastery-brackets/gathering (ustalık kademeleri)
+    - https://garmoth.com/artifacts/lifeskill/lightstone/sets
+    - https://grumpygreen.cricket/life-mastery-buffs/
+    - https://grumpygreen.cricket/combo-life/ (lightstone set etkileri)
+    - https://grumpygreen.cricket/bdo-pet-guide/
+    - https://saarith.com/bdo-fishing-guide/ , https://saarith.com/bdo-auto-fishing-guide/
+    - https://bdo.altarofgaming.com/item/balenos-meal/
+  "≈" ile işaretli değerler tam doğrulanamadı, yaklaşıktır. / Values marked "≈" could not be fully verified.
+  Kod ve metin özgündür; bdoworkshop.com'dan hiçbir şey kopyalanmamıştır.
+-->
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i-title="BDO Yaşam Becerisi Bufları|BDO Lifeskill Buffs">BDO Yaşam Becerisi Bufları</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#2b3440; --fg:#e6edf3; --dim:#8b949e; --accent:#ffd54a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:13.5px/1.5 "Segoe UI", system-ui, sans-serif; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+
+  #nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:14px;
+         background:var(--panel); border-bottom:1px solid var(--line); padding:8px 16px; flex-wrap:wrap; }
+  #nav a { color:var(--fg); padding:3px 6px; border-radius:6px; white-space:nowrap; }
+  #nav a:hover { background:#21262d; text-decoration:none; }
+  #nav a[aria-current="page"] { color:var(--accent); }
+  #nav button, .btn { background:#21262d; color:var(--fg); border:1px solid var(--line); border-radius:6px;
+         padding:3px 10px; cursor:pointer; font:inherit; }
+  #nav button:hover, .btn:hover { background:#30363d; }
+  #nav button.on, .btn.on { background:#2d5a3d; border-color:#3d7a52; }
+
+  main { max-width:1060px; margin:0 auto; padding:16px; }
+  h1 { font-size:20px; margin:8px 0 2px; }
+  .sub { color:var(--dim); margin:0 0 14px; }
+
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+
+  #tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  #tabs .btn { font-size:13px; }
+  #cats { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+  #cats .btn { font-size:12px; padding:2px 8px; }
+  #q { background:#0d1117; border:1px solid var(--line); border-radius:6px; color:var(--fg); padding:4px 8px; font:inherit; min-width:180px; }
+
+  .skillnote { color:var(--dim); margin:2px 0 10px; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; color:var(--dim); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--line); font-size:12.5px; }
+  td { padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .dim { color:var(--dim); }
+  .tag { display:inline-block; font-size:11px; color:var(--dim); border:1px solid var(--line); border-radius:5px; padding:0 5px; margin-right:4px; white-space:nowrap; }
+  .tag.gen { color:var(--accent); border-color:#5a4d1e; }
+  .approx { color:var(--accent); cursor:help; }
+  .empty { color:var(--dim); padding:14px; text-align:center; }
+
+  #stack h2 { font-size:16px; margin:2px 0 8px; }
+  #stack h3 { font-size:14px; margin:12px 0 4px; color:var(--accent); }
+  #stack ul { margin:4px 0 8px 20px; padding:0; }
+  #stack li { margin:3px 0; }
+  .check { list-style:none; margin-left:0 !important; }
+  .check li::before { content:"✔ "; color:#3d7a52; }
+
+  footer { border-top:1px solid var(--line); color:var(--dim); padding:14px 16px; text-align:center; margin-top:20px; }
+  footer a { color:var(--dim); text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="index.html">🗺 <span data-i>Harita|Map</span></a>
+  <a href="enhancement.html">⚒ <span data-i>Geliştirme|Enhancement</span></a>
+  <a href="fs-cost.html">📈 <span data-i>FS Maliyeti|FS Cost</span></a>
+  <a href="carrack.html">⛵ Carrack</a>
+  <a href="lifeskill-buffs.html" aria-current="page">🧪 <span data-i>Yaşam Becerisi|Lifeskill</span></a>
+  <span style="flex:1"></span>
+  <button id="lang-tr">TR</button><button id="lang-en">EN</button>
+</nav>
+
+<main>
+  <h1 data-i>Yaşam Becerisi Bufları|Lifeskill Buffs</h1>
+  <p class="sub" data-i>Toplama, balıkçılık, avcılık, yemek, simya ve işleme için ustalık/verim artıran tüm buf kaynakları. "≈" işaretli değerler yaklaşıktır.|All mastery and efficiency buff sources for gathering, fishing, hunting, cooking, alchemy and processing. Values marked "≈" are approximate.</p>
+
+  <div id="tabs"></div>
+
+  <div id="ref-panel">
+    <div id="cats"></div>
+    <p class="skillnote" id="skillnote"></p>
+    <div class="card" style="padding:0 14px;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32%" data-i>Buf / Kaynak|Buff / Source</th>
+            <th style="width:13%" data-i>Kategori|Category</th>
+            <th data-i>Etki|Effect</th>
+            <th class="num" style="width:12%" data-i>Süre|Duration</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="stack" class="card" style="display:none;">
+    <h2 data-i>Buf Stack'leme Rehberi|Buff Stacking Guide</h2>
+    <p data-i>Farklı kategorilerdeki buflar birbiriyle stacklenir; aynı kategori içinde genelde yalnızca biri (veya en güçlüsü) geçerlidir.|Buffs from different categories stack with each other; within the same category usually only one (or the strongest) applies.</p>
+
+    <h3 data-i>Birbiriyle stacklenen kategoriler|Categories that stack with each other</h3>
+    <ul>
+      <li><b data-i>Ekipman|Gear</b> — <span data-i>kıyafet + aksesuarlar + araç/alet, hepsi aynı anda sayılır (kalıcı).|clothes + accessories + tool, all count at the same time (permanent).</span></li>
+      <li><b data-i>Yemek|Food</b> — <span data-i>farklı yemekler birlikte aktif olabilir (ör. Seafood Cron Meal + Balenos Meal); aynı yemek süresini yeniler, Cron yemekleri birbiriyle stacklenmez.|different foods can be active together (e.g. Seafood Cron Meal + Balenos Meal); the same food refreshes its timer, Cron meals do not stack with each other.</span></li>
+      <li><b data-i>İksir / Draught|Elixir / Draught</b> — <span data-i>yemeklerden ayrı bir kategoridir. Verdure Draught üç yaşam iksirinin birleşimidir ve iksir slotlarını kullanır; Elixir of Mastery ile birlikte kullanılabilir.|a separate category from food. Verdure Draught combines three life elixirs and uses elixir slots; it can be used together with Elixir of Mastery.</span></li>
+      <li><b data-i>Parşömen / Kitap|Scroll / Book</b> — <span data-i>Secret Book of Florin ve event destek parşömenleri her şeyle stacklenir.|Secret Book of Florin and event support scrolls stack with everything.</span></li>
+      <li><b data-i>Simya Taşı / Ruh Taşı|Alchemy Stone / Spirit Stone</b> — <span data-i>aynı anda yalnızca bir taş aktif olur (Stella's Spirit Stone, Alchemy Stone of Life, Khan's Heart: Life...).|only one stone can be active at a time (Stella's Spirit Stone, Alchemy Stone of Life, Khan's Heart: Life...).</span></li>
+      <li><b>Lightstone / Artifact</b> — <span data-i>2 artifact + 4 lightstone set etkisi ekipmanla birlikte her zaman geçerlidir.|2 artifacts + 4 lightstones set effect always applies together with gear.</span></li>
+      <li><b data-i>Petler|Pets</b> — <span data-i>pet yetenekleri (Yaşam EXP +%1/tier, tür-özel EXP, kirpi/otomatik balık) pasif olarak her şeyle stacklenir.|pet talents (Life EXP +1%/tier, skill-specific EXP, hedgehog/auto-fishing) stack passively with everything.</span></li>
+      <li><b data-i>Lonca becerileri|Guild skills</b> — <span data-i>kişisel buflardan bağımsız çalışır.|work independently of personal buffs.</span></li>
+    </ul>
+
+    <h3 data-i>Stacklenmeyenler / dikkat|Non-stacking / caution</h3>
+    <ul>
+      <li data-i>Aynı türde iki iksir (ör. iki balıkçı iksiri) birlikte çalışmaz; güçlü olan geçerlidir.|Two elixirs of the same type (e.g. two fisher elixirs) do not work together; the stronger one applies.</li>
+      <li data-i>Kilise bufları (altın külçe bağışı) yalnızca savaş statları verir; yaşam becerisi ustalığını ETKİLEMEZ.|Church buffs (gold bar donation) only grant combat stats; they do NOT affect lifeskill mastery.</li>
+      <li data-i>Choice and Focus lightstone setleri EXP +41% verirken ustalığı -500 düşürür; verim değil, seviye kasarken kullanın.|Choice and Focus lightstone sets give EXP +41% but reduce mastery by -500; use them for leveling, not for yield.</li>
+    </ul>
+
+    <h3 data-i>Pratik kontrol listesi (maksimum verim)|Practical checklist (maximum yield)</h3>
+    <ul class="check">
+      <li data-i>Manos kıyafet + Manos/Preonne aksesuarlar + beceriye özel Manos araç|Manos clothes + Manos/Preonne accessories + skill-specific Manos tool</li>
+      <li data-i>Beceriye uygun lightstone seti (ör. Yawning Hedgehog, Nibbles, Clang! Clang!) + 2× Sethra artifact|Matching lightstone set (e.g. Yawning Hedgehog, Nibbles, Clang! Clang!) + 2× Sethra artifacts</li>
+      <li data-i>Simya taşı: Stella's Spirit Stone (+100 ustalık) veya Alchemy Stone of Life|Alchemy stone: Stella's Spirit Stone (+100 mastery) or Alchemy Stone of Life</li>
+      <li>Seafood Cron Meal (+25) + Verdure Draught + Elixir of Mastery (+10/+15)</li>
+      <li data-i>Secret Book of Florin / event parşömeni (+100 ustalık, 60 dk)|Secret Book of Florin / event scroll (+100 mastery, 60 min)</li>
+      <li data-i>5 pet dışarıda: Yaşam EXP talentli + beceriye özel pet (kirpi / balık peti)|5 pets out: Life EXP talents + skill-specific pet (hedgehog / fishing pet)</li>
+    </ul>
+  </div>
+</main>
+
+<footer>
+  <span data-i>Veriler topluluk kaynaklarından derlenmiştir|Data compiled from community sources</span> · © Pearl Abyss ·
+  <a href="https://www.blackdesertfoundry.com/" target="_blank" rel="noopener">BDFoundry</a> ·
+  <a href="https://garmoth.com/" target="_blank" rel="noopener">Garmoth</a> ·
+  <a href="https://grumpygreen.cricket/" target="_blank" rel="noopener">GrumpyG</a>
+</footer>
+
+<script>
+"use strict";
+/* ---------- dil / language ---------- */
+var LANG_KEY = "bdo_tachyon_lang";
+var lang = "tr";
+try { var s = localStorage.getItem(LANG_KEY); if (s === "en" || s === "tr") lang = s; } catch (e) {}
+
+function pick(str) {
+  var i = str.indexOf("|");
+  if (i < 0) return str;
+  return lang === "tr" ? str.slice(0, i) : str.slice(i + 1);
+}
+
+function applyStatic() {
+  document.documentElement.lang = lang;
+  var nodes = document.querySelectorAll("[data-i]");
+  for (var i = 0; i < nodes.length; i++) {
+    var n = nodes[i];
+    if (!n.dataset.orig) n.dataset.orig = n.textContent;
+    n.textContent = pick(n.dataset.orig);
+  }
+  var t = document.querySelector("[data-i-title]");
+  if (t) document.title = pick(t.getAttribute("data-i-title"));
+  document.getElementById("lang-tr").classList.toggle("on", lang === "tr");
+  document.getElementById("lang-en").classList.toggle("on", lang === "en");
+}
+
+/* ---------- veri / data ----------
+   s: beceri (all = tüm beceriler), c: kategori, n: "TR ad|EN ad",
+   e: "TR etki|EN etki", d: "TR süre|EN süre", a: yaklaşık (≈) */
+var SKILLS = [
+  ["gather",  "Toplama|Gathering"],
+  ["fish",    "Balıkçılık|Fishing"],
+  ["hunt",    "Avcılık|Hunting"],
+  ["cook",    "Yemek|Cooking"],
+  ["alch",    "Simya|Alchemy"],
+  ["proc",    "İşleme|Processing"],
+  ["stack",   "Stack Rehberi|Stacking Guide"]
+];
+var CATS = {
+  gear:  "Kıyafet & Aksesuar|Clothes & Accessory",
+  tool:  "Araç|Tool",
+  food:  "Yemek|Food",
+  elix:  "İksir & Draught|Elixir & Draught",
+  stone: "Simya Taşı|Alchemy Stone",
+  light: "Lightstone",
+  arti:  "Artifact",
+  pet:   "Pet",
+  misc:  "Diğer|Other"
+};
+var PERM = "Kalıcı|Permanent";
+
+var NOTES = {
+  gather: "Toplama ustalığı: nadir malzeme düşme şansı ve çoklu toplama miktarını artırır.|Gathering mastery: increases rare material drop chance and bonus gather amounts.",
+  fish:   "Balıkçılık ustalığı: ödül (prize) balığı yakalama şansını artırır (1500 ustalıkta ≈%3,75).|Fishing mastery: increases prize fish catch chance (≈3.75% at 1500 mastery).",
+  hunt:   "Avcılık ustalığı: av hasarını ve nadir yağma şansını artırır.|Hunting mastery: increases hunting damage and rare loot chance.",
+  cook:   "Yemek ustalığı: toplu pişirme (mass cooking) ve ek ürün şansını artırır.|Cooking mastery: enables mass cooking and increases bonus item chance.",
+  alch:   "Simya ustalığı: toplu simya ve ek ürün/nadir çıktı şansını artırır.|Alchemy mastery: enables mass alchemy and increases bonus/rare output chance.",
+  proc:   "İşleme ustalığı: toplu işleme (mass processing) miktarını artırır; işleme taşı gerektirir.|Processing mastery: increases mass processing amounts; requires a processing stone."
+};
+
+var DATA = [
+/* ---- genel / applies to all skills ---- */
+{s:"all", c:"gear",  n:"Manos Aksesuarları|Manos Accessories", e:"Küpe/yüzük: ustalık +10 → +125 (PEN); kolye/kemer: +15 → +150 (PEN)|Earring/ring: mastery +10 → +125 (PEN); necklace/belt: +15 → +150 (PEN)", d:PERM},
+{s:"all", c:"gear",  n:"Preonne Aksesuarları|Preonne Accessories", e:"Manos'tan üstün en üst seviye aksesuar; DEC (X) seviyesine kadar basılır|Top-tier accessory above Manos; enhances up to DEC (X)", d:PERM},
+{s:"all", c:"gear",  n:"Loggia Aksesuarları|Loggia Accessories", e:"Küpe/yüzük: ustalık +4 → +50; kolye/kemer: +5 → +60 (PEN) — ucuz başlangıç|Earring/ring: mastery +4 → +50; necklace/belt: +5 → +60 (PEN) — cheap starter", d:PERM},
+{s:"all", c:"food",  n:"Deniz Ürünlü Cron Yemeği|Seafood Cron Meal", e:"Tüm yaşam ustalığı +25, Yaşam EXP +10%, yemek/simya süresi -0,6 sn, işleme başarısı +10%, toplama +2, balıkçılık +2|All life mastery +25, Life EXP +10%, cook/alchemy time -0.6s, processing success +10%, gathering +2, fishing +2", d:"120 dk|120 min"},
+{s:"all", c:"food",  n:"Lezzetli Biftek|Savory Steak", e:"Yaşam becerisi ustalığı +10|Life skill mastery +10", d:"60 dk|60 min"},
+{s:"all", c:"food",  n:"Sute Çayı|Sute Tea", e:"Yaşam EXP +8%|Life EXP +8%", d:"90 dk|90 min", a:1},
+{s:"all", c:"elix",  n:"Verdure Draught", e:"Toplama +3, balıkçılık +3, Yaşam EXP +20%, simya/yemek süresi -1 sn, işleme başarısı +20%, ağırlık +200LT|Gathering +3, fishing +3, Life EXP +20%, alchemy/cook time -1s, processing success +20%, weight +200LT", d:"120 dk|120 min"},
+{s:"all", c:"elix",  n:"Ustalık İksiri|Elixir of Mastery", e:"Yaşam ustalığı +10 (gelişmiş sürüm: +15)|Life mastery +10 (higher grade: +15)", d:"10 / 15 dk|10 / 15 min"},
+{s:"all", c:"misc",  n:"Florin'in Gizli Kitabı|Secret Book of Florin", e:"Yaşam ustalığı +100, Yaşam EXP +20% (event parşömenleri de aynı etkiyi verir)|Life mastery +100, Life EXP +20% (event scrolls give the same effect)", d:"60 dk|60 min"},
+{s:"all", c:"stone", n:"Stella's Spirit Stone", e:"Yaşam ustalığı +100 (aktifken her 10 dakikada 1 dayanıklılık harcar)|Life mastery +100 (consumes 1 durability per 10 min while active)", d:"Aktifken|While active"},
+{s:"all", c:"stone", n:"Khan's Heart: Life", e:"Tüm yaşam ustalığı +25 + ek yaşam etkileri|All life mastery +25 + extra life effects", d:"Aktifken|While active", a:1},
+{s:"all", c:"stone", n:"Yaşam Simya Taşı|Alchemy Stone of Life", e:"Kaliteye göre: Yaşam EXP, toplama +2, toplama drop oranı +%13'e kadar, yemek/simya süresi -0,5 → -2 sn, işleme başarısı|By quality: Life EXP, gathering +2, gathering drop rate up to +13%, cook/alchemy time -0.5 → -2s, processing success", d:"Aktifken|While active", a:1},
+{s:"all", c:"stone", n:"Yaşam Ruh Taşı|Life Spirit Stone", e:"Toplama +2, balıkçılık +2, yemek/simya süresi -1,1 sn, toplama drop +10%|Gathering +2, fishing +2, cook/alchemy time -1.1s, gathering drop +10%", d:"Aktifken|While active", a:1},
+{s:"all", c:"arti",  n:"Sethra Artifactları|Sethra's Artifacts", e:"Beceri başına seçenekler: Ustalık +10 veya EXP +5% (işleme/toplamada ek başarı/drop etkileri) — 2 artifact takılır|Per-skill options: Mastery +10 or EXP +5% (extra success/drop for processing/gathering) — 2 artifacts equipped", d:PERM},
+{s:"all", c:"pet",   n:"Pet Yetenekleri|Pet Talents", e:"Yaşam EXP +1%/tier (5 petle +21%'e kadar); tür-özel EXP +5% × 5 pet = +25%'e kadar|Life EXP +1%/tier (up to +21% with 5 pets); skill-specific EXP +5% × 5 pets = up to +25%", d:PERM},
+{s:"all", c:"pet",   n:"Mistik Canavarların Kutsaması|Blessing of Mystic Beasts", e:"Yaşam Becerisi Ustalığı sürümü: yaşam ustalığı artışı (≈ +50, pet birleştirme sistemi)|Life Skill Mastery version: life mastery increase (≈ +50, pet exchange system)", d:PERM, a:1},
+{s:"all", c:"misc",  n:"Lonca Becerileri|Guild Skills", e:"Yaşam EXP artışı; balıkçılık için ayrıca seviye +3'e kadar|Life EXP increase; up to fishing level +3 for fishing", d:"Lonca buffı|Guild buff", a:1},
+{s:"all", c:"misc",  n:"Kilise Buffları|Church Buffs", e:"Yalnızca savaş statları verir — yaşam becerisi ustalığını ETKİLEMEZ|Grant combat stats only — do NOT affect lifeskill mastery", d:"—"},
+
+/* ---- toplama / gathering ---- */
+{s:"gather", c:"gear", n:"Manos Toplayıcı Kıyafeti|Manos Gatherer's Clothes", e:"Toplama ustalığı +5 → +400 (PEN), Yaşam EXP +5% → +40%|Gathering mastery +5 → +400 (PEN), Life EXP +5% → +40%", d:PERM},
+{s:"gather", c:"gear", n:"Carta Toplayıcı Kıyafeti|Carta Gatherer's Clothes", e:"Toplama ustalığı +4 → +330, Yaşam EXP +4% → +33%|Gathering mastery +4 → +330, Life EXP +4% → +33%", d:PERM},
+{s:"gather", c:"gear", n:"Loggia Toplayıcı Kıyafeti|Loggia Gatherer's Clothes", e:"Toplama ustalığı +3 → +280, Yaşam EXP +3% → +28%|Gathering mastery +3 → +280, Life EXP +3% → +28%", d:PERM},
+{s:"gather", c:"tool", n:"Manos Toplama Araçları|Manos Gathering Tools", e:"Araç türüne göre (kasap bıçağı, balta, kazma...) toplama ustalığı +5 → +400 (PEN)|Per tool type (butcher knife, axe, pickaxe...) gathering mastery +5 → +400 (PEN)", d:PERM},
+{s:"gather", c:"tool", n:"Magic / Lucky Araçlar|Magic / Lucky Tools", e:"Yüksek toplama hızı, ustalık vermez; ~650 ustalık altında önerilir|High gathering speed, no mastery; recommended below ~650 mastery", d:PERM, a:1},
+{s:"gather", c:"food", n:"Balenos Yemeği|Balenos Meal", e:"Toplama +2, balıkçılık +2, hareket hızı +2|Gathering +2, fishing +2, movement speed +2", d:"90 dk|90 min"},
+{s:"gather", c:"food", n:"Haşlanmış Kabuklu Deniz Ürünü|Hard-Boiled Shellfish", e:"Toplama +2|Gathering +2", d:"—", a:1},
+{s:"gather", c:"food", n:"İncirli Turta|Fig Pie", e:"Toplama drop oranı +3%|Gathering item drop rate +3%", d:"—", a:1},
+{s:"gather", c:"elix", n:"İşçi İksiri|Worker's Elixir", e:"Toplama +2|Gathering +2", d:"5 dk|5 min", a:1},
+{s:"gather", c:"light", n:"Yawning Hedgehog (set)", e:"Toplama EXP +13%, ustalık +25, drop oranı +10%, enerji yenilenme +1|Gathering EXP +13%, mastery +25, drop rate +10%, energy recovery +1", d:PERM},
+{s:"gather", c:"light", n:"Scurrying Weasel (set)", e:"Toplama EXP +13%, ustalık +25, drop +5%, hareket hızı +3%|Gathering EXP +13%, mastery +25, drop +5%, movement speed +3%", d:PERM},
+{s:"gather", c:"light", n:"Nature-lover (set)", e:"Toplama ustalığı +45 (3× Flora: Forest + Iridescent)|Gathering mastery +45 (3× Flora: Forest + Iridescent)", d:PERM},
+{s:"gather", c:"arti", n:"Sethra – Toplama|Sethra – Gathering", e:"Toplama EXP +3%, ustalık +10, drop oranı +2%|Gathering EXP +3%, mastery +10, drop rate +2%", d:PERM},
+{s:"gather", c:"pet",  n:"Kirpi / Lama|Hedgehog / Llama", e:"Tier'a göre %30–50 şansla ekstra toplama (çift ürün)|30–50% chance for an extra gather (double loot) by tier", d:PERM},
+
+/* ---- balıkçılık / fishing ---- */
+{s:"fish", c:"gear", n:"Manos Balıkçı Kıyafeti|Manos Fisher's Clothes", e:"Balıkçılık ustalığı +5 → +400 (PEN), Yaşam EXP artışı|Fishing mastery +5 → +400 (PEN), Life EXP increase", d:PERM},
+{s:"fish", c:"gear", n:"Crio Balıkçı Kıyafeti|Crio Fisher's Clothes", e:"Balıkçılık ustalığı +4 → +330 (mavi sınıf)|Fishing mastery +4 → +330 (blue grade)", d:PERM, a:1},
+{s:"fish", c:"gear", n:"Loggia Balıkçı Kıyafeti|Loggia Fisher's Clothes", e:"Balıkçılık ustalığı +3 → +280|Fishing mastery +3 → +280", d:PERM},
+{s:"fish", c:"tool", n:"Balenos Oltası|Balenos Fishing Rod", e:"Otomatik balıkçılık süresi -10% → -25% (+10'da)|Auto-fishing time -10% → -25% (at +10)", d:PERM},
+{s:"fish", c:"tool", n:"Manos Balıkçı Sandalyesi|Manos Fishing Chair", e:"Balıkçılık ustalığı +5 → +400 ve otomatik balıkçılık süresi azaltma (~%10)|Fishing mastery +5 → +400 and auto-fishing time reduction (~10%)", d:PERM, a:1},
+{s:"fish", c:"food", n:"Balenos Yemeği|Balenos Meal", e:"Balıkçılık +2, toplama +2, hareket hızı +2 (Special sürümü daha güçlü)|Fishing +2, gathering +2, movement speed +2 (Special version is stronger)", d:"90 dk|90 min"},
+{s:"fish", c:"food", n:"Arehaza Yemeği|Arehaza Meal", e:"Otomatik balıkçılık süresi -5% (Special: -10%)|Auto-fishing time -5% (Special: -10%)", d:"90 dk|90 min", a:1},
+{s:"fish", c:"food", n:"Balacs Beslenme Çantası|Balacs Lunchbox", e:"Balıkçılık +2, otomatik balıkçılık -7% (Marvelous: +3 / -10%)|Fishing +2, auto-fishing -7% (Marvelous: +3 / -10%)", d:"—", a:1},
+{s:"fish", c:"food", n:"Hindistan Cevizi Kokteyli|Coconut Cocktail", e:"Otomatik balıkçılık süresi -5%|Auto-fishing time -5%", d:"—", a:1},
+{s:"fish", c:"elix", n:"Balıkçı İksiri|Fisher's Elixir", e:"Balıkçılık +2 (Skilled Fisher's Elixir: +3)|Fishing +2 (Skilled Fisher's Elixir: +3)", d:"5 / 8 dk|5 / 8 min"},
+{s:"fish", c:"misc", n:"Macun Yem|Paste Bait", e:"Balıkçılık seviyesi +2 / +3 (kalitesine göre)|Fishing level +2 / +3 (by quality)", d:"—", a:1},
+{s:"fish", c:"light", n:"Nibbles (set)", e:"Balıkçılık EXP +13%, ustalık +25, otomatik balıkçılık -15%, dayanıklılık +25|Fishing EXP +13%, mastery +25, auto-fishing -15%, stamina +25", d:PERM},
+{s:"fish", c:"light", n:"Whaling (set)", e:"Balıkçılık EXP +13%, ustalık +25, kaliteli balık şansı +6%, ağırlık +20LT|Fishing EXP +13%, mastery +25, high-quality fish +6%, weight +20LT", d:PERM},
+{s:"fish", c:"light", n:"Sharp-eyed Seagull (set)", e:"Balıkçılık EXP +13%, ustalık +25, nadir balık şansı +5%|Fishing EXP +13%, mastery +25, rare fish chance +5%", d:PERM},
+{s:"fish", c:"light", n:"Fisher's Secrets (set)", e:"Balıkçılık ustalığı +45 (3× Flora: Patience + Iridescent)|Fishing mastery +45 (3× Flora: Patience + Iridescent)", d:PERM},
+{s:"fish", c:"arti", n:"Sethra – Balıkçılık|Sethra – Fishing", e:"Balıkçılık EXP +5%, ustalık +10|Fishing EXP +5%, mastery +10", d:PERM},
+{s:"fish", c:"pet",  n:"Balık Petleri (su samuru, penguen...)|Fishing Pets (otter, penguin...)", e:"Otomatik balıkçılık süresi -10% (T1) → -30% (T4 sv.10)|Auto-fishing time -10% (T1) → -30% (T4 lv.10)", d:PERM},
+
+/* ---- avcılık / hunting ---- */
+{s:"hunt", c:"gear", n:"Manos Avcı Kıyafeti|Manos Hunter's Clothes", e:"Avcılık ustalığı +5 → +400 (PEN), hareket hızı +1~3, Avcılık EXP → +40%|Hunting mastery +5 → +400 (PEN), movement speed +1~3, Hunting EXP → +40%", d:PERM},
+{s:"hunt", c:"gear", n:"Robeau Avcı Kıyafeti|Robeau Hunter's Clothes", e:"Avcılık ustalığı +4 → +330, hareket hızı +1~2|Hunting mastery +4 → +330, movement speed +1~2", d:PERM},
+{s:"hunt", c:"gear", n:"Loggia Avcı Kıyafeti|Loggia Hunter's Clothes", e:"Avcılık ustalığı +3 → +280, hareket hızı +1~2|Hunting mastery +3 → +280, movement speed +1~2", d:PERM},
+{s:"hunt", c:"tool", n:"Tüfek (Matchlock)|Matchlock", e:"Kademesine göre avcılık hasarı +750 → +1350; kullanırken dayanıklılık harcar|Hunting damage +750 → +1350 by tier; consumes durability in use", d:PERM, a:1},
+{s:"hunt", c:"tool", n:"Keskin Nişancı Tüfeği|Sniper Rifle", e:"Uzun menzilli özel av modu (dev av hayvanları)|Long-range special hunting mode (giant wild beasts)", d:PERM},
+{s:"hunt", c:"light", n:"Canine Tooth (set)", e:"Avcılık EXP +13%, ustalık +25, kritik vuruş şansı +8%, saldırı hızı +2|Hunting EXP +13%, mastery +25, crit chance +8%, attack speed +2", d:PERM},
+{s:"hunt", c:"light", n:"Blink of an Eye (set)", e:"Avcılık EXP +13%, ustalık +25, tüfek doldurma +10%, saldırı hızı +2|Hunting EXP +13%, mastery +25, matchlock reload +10%, attack speed +2", d:PERM},
+{s:"hunt", c:"light", n:"Legendary Marksman (set)", e:"Avcılık ustalığı +45 (3× Flora: Track + Iridescent)|Hunting mastery +45 (3× Flora: Track + Iridescent)", d:PERM},
+{s:"hunt", c:"arti", n:"Sethra – Avcılık|Sethra – Hunting", e:"Avcılık EXP +5%, ustalık +10|Hunting EXP +5%, mastery +10", d:PERM},
+
+/* ---- yemek / cooking ---- */
+{s:"cook", c:"gear", n:"Manos Aşçı Kıyafeti|Manos Cook's Clothes", e:"Yemek ustalığı +5 → +400 (PEN) ve pişirme süresi -1 → -7 sn|Cooking mastery +5 → +400 (PEN) and cooking time -1 → -7s", d:PERM, a:1},
+{s:"cook", c:"gear", n:"Gümüş İşlemeli Aşçı Kıyafeti|Silver Embroidered Cook's Clothes", e:"+5'te pişirme süresi -7 sn (ucuz hız seçeneği, ustalık yok)|Cooking time -7s at +5 (cheap speed option, no mastery)", d:PERM, a:1},
+{s:"cook", c:"gear", n:"Canape Kostümü|Canape Costume", e:"Pişirme süresi -2 sn (İnci Mağazası kıyafeti)|Cooking time -2s (Pearl Shop costume)", d:PERM},
+{s:"cook", c:"tool", n:"Manos Kepçesi|Manos Ladle", e:"Yemek ustalığı +5 → +400 (PEN), pişirme süresi -1 sn, Yemek EXP artışı|Cooking mastery +5 → +400 (PEN), cooking time -1s, Cooking EXP increase", d:PERM},
+{s:"cook", c:"tool", n:"Gelişmiş Mutfak Gereci|Advanced Cooking Utensil", e:"Pişirme süresi -1 sn (900 dayanıklılık); Morning Light Traditional: -1 sn, 3000 dayanıklılık|Cooking time -1s (900 durability); Morning Light Traditional: -1s, 3000 durability", d:PERM},
+{s:"cook", c:"tool", n:"Balenos Geleneksel Mutfak Gereci|Balenos Traditional Cooking Utensil", e:"Pişirme süresi +5 sn ama çok yüksek dayanıklılık (AFK pişirme için)|Cooking time +5s but very high durability (for AFK cooking)", d:PERM, a:1},
+{s:"cook", c:"food", n:"Teff Sandviçi|Teff Sandwich", e:"Yemek/simya süresi -0,5 sn|Cooking/alchemy time -0.5s", d:"110 dk|110 min", a:1},
+{s:"cook", c:"light", n:"Fundamentals of Cooking (set)", e:"Yemek EXP +13%, ustalık +25, pişirme süresi -2 sn, ağırlık +50LT|Cooking EXP +13%, mastery +25, cooking time -2s, weight +50LT", d:PERM},
+{s:"cook", c:"light", n:"Imperial Chef (set)", e:"Yemek ustalığı +45 (3× Flora: Stir + Iridescent)|Cooking mastery +45 (3× Flora: Stir + Iridescent)", d:PERM},
+{s:"cook", c:"arti", n:"Sethra – Yemek|Sethra – Cooking", e:"Yemek EXP +5%, ustalık +10|Cooking EXP +5%, mastery +10", d:PERM},
+{s:"cook", c:"pet",  n:"Lil' Otter Cookchemy Carrier", e:"Yemek/simya ustalığı +100, EXP +20%, süre -1 sn (İnci sırt aksesuarı)|Cooking/alchemy mastery +100, EXP +20%, time -1s (Pearl back accessory)", d:PERM, a:1},
+
+/* ---- simya / alchemy ---- */
+{s:"alch", c:"gear", n:"Manos Simyacı Kıyafeti|Manos Alchemist's Clothes", e:"Simya ustalığı +5 → +400 (PEN) ve simya süresi -1 → -7 sn|Alchemy mastery +5 → +400 (PEN) and alchemy time -1 → -7s", d:PERM, a:1},
+{s:"alch", c:"gear", n:"Gorgath Simyacı Kıyafeti|Gorgath Alchemist's Clothes", e:"Simya ustalığı +4 → +330, simya süresi -1 → -5 sn|Alchemy mastery +4 → +330, alchemy time -1 → -5s", d:PERM, a:1},
+{s:"alch", c:"gear", n:"Loggia Simyacı Kıyafeti|Loggia Alchemist's Clothes", e:"Simya ustalığı +3 → +280, simya süresi -1 → -4 sn|Alchemy mastery +3 → +280, alchemy time -1 → -4s", d:PERM, a:1},
+{s:"alch", c:"gear", n:"Pavilla Kostümü|Pavilla Costume", e:"Simya süresi -2 sn (İnci Mağazası kıyafeti)|Alchemy time -2s (Pearl Shop costume)", d:PERM},
+{s:"alch", c:"tool", n:"Manos Şişesi|Manos Flask", e:"Simya ustalığı → +400, simya süresi -1 sn (Gorgath Flask: → +330 / -0,7 sn)|Alchemy mastery → +400, alchemy time -1s (Gorgath Flask: → +330 / -0.7s)", d:PERM, a:1},
+{s:"alch", c:"tool", n:"Gelişmiş Simya Gereci|Advanced Alchemy Tool", e:"Simya süresi -1 sn; Balenos Traditional: +5 sn ama yüksek dayanıklılık|Alchemy time -1s; Balenos Traditional: +5s but high durability", d:PERM},
+{s:"alch", c:"food", n:"Teff Sandviçi|Teff Sandwich", e:"Yemek/simya süresi -0,5 sn|Cooking/alchemy time -0.5s", d:"110 dk|110 min", a:1},
+{s:"alch", c:"light", n:"A Fragment of a Star, a Spoonful of the Moon (set)", e:"Simya EXP +13%, ustalık +25, simya süresi -2 sn, ağırlık +50LT|Alchemy EXP +13%, mastery +25, alchemy time -2s, weight +50LT", d:PERM},
+{s:"alch", c:"light", n:"Imperial Alchemist (set)", e:"Simya ustalığı +45 (3× Flora: Malleable + Iridescent)|Alchemy mastery +45 (3× Flora: Malleable + Iridescent)", d:PERM},
+{s:"alch", c:"arti", n:"Sethra – Simya|Sethra – Alchemy", e:"Simya EXP +5%, ustalık +10|Alchemy EXP +5%, mastery +10", d:PERM},
+{s:"alch", c:"pet",  n:"Lil' Otter Cookchemy Carrier", e:"Yemek/simya ustalığı +100, EXP +20%, süre -1 sn (İnci sırt aksesuarı)|Cooking/alchemy mastery +100, EXP +20%, time -1s (Pearl back accessory)", d:PERM, a:1},
+
+/* ---- işleme / processing ---- */
+{s:"proc", c:"gear", n:"Manos Zanaatkâr Kıyafeti|Manos Craftsman's Clothes", e:"İşleme ustalığı +5 → +400 (PEN), Yaşam EXP artışı|Processing mastery +5 → +400 (PEN), Life EXP increase", d:PERM},
+{s:"proc", c:"gear", n:"Carta Zanaatkâr Kıyafeti|Carta Craftsman's Clothes", e:"İşleme ustalığı +4 → +330|Processing mastery +4 → +330", d:PERM},
+{s:"proc", c:"gear", n:"Loggia Zanaatkâr Kıyafeti|Loggia Craftsman's Clothes", e:"İşleme ustalığı +3 → +280|Processing mastery +3 → +280", d:PERM},
+{s:"proc", c:"tool", n:"İşleme Taşları|Processing Stones", e:"Toplu işleme için gerekli: Loggia (giriş) → Techthon (orta) → Manos (en iyi, ustalık → +400); tür bazlı (ısıtma/öğütme/kesme...)|Required for mass processing: Loggia (entry) → Techthon (mid) → Manos (best, mastery → +400); per type (heating/grinding/chopping...)", d:PERM},
+{s:"proc", c:"light", n:"Clang! Clang! (set)", e:"İşleme EXP +13%, ustalık +25, işleme başarısı +20%, ağırlık +50LT|Processing EXP +13%, mastery +25, processing success +20%, weight +50LT", d:PERM},
+{s:"proc", c:"light", n:"Multi-purpose (set)", e:"İşleme ustalığı +45 (3× Flora: Deft + Iridescent)|Processing mastery +45 (3× Flora: Deft + Iridescent)", d:PERM},
+{s:"proc", c:"arti", n:"Sethra – İşleme|Sethra – Processing", e:"İşleme EXP +3%, ustalık +10, işleme başarısı +5%|Processing EXP +3%, mastery +10, processing success +5%", d:PERM}
+];
+
+/* ---------- durum / state ---------- */
+var curSkill = "gather";
+var curCat = "all";
+var query = "";
+
+function esc(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function nameCell(row) {
+  var i = row.n.indexOf("|");
+  var tr = i < 0 ? row.n : row.n.slice(0, i);
+  var en = i < 0 ? row.n : row.n.slice(i + 1);
+  var main = lang === "tr" ? tr : en;
+  var alt  = lang === "tr" ? en : tr;
+  var h = "<b>" + esc(main) + "</b>";
+  if (alt !== main) h += ' <span class="dim">(' + esc(alt) + ")</span>";
+  if (row.a) h += ' <span class="approx" title="' + (lang === "tr" ? "Yaklaşık değer, tam doğrulanamadı" : "Approximate value, not fully verified") + '">≈</span>';
+  return h;
+}
+
+function renderTabs() {
+  var host = document.getElementById("tabs");
+  host.innerHTML = "";
+  for (var i = 0; i < SKILLS.length; i++) {
+    (function (key, label) {
+      var b = document.createElement("button");
+      b.className = "btn" + (curSkill === key ? " on" : "");
+      b.textContent = pick(label);
+      b.onclick = function () { curSkill = key; curCat = "all"; render(); };
+      host.appendChild(b);
+    })(SKILLS[i][0], SKILLS[i][1]);
+  }
+}
+
+function renderCats() {
+  var host = document.getElementById("cats");
+  host.innerHTML = "";
+  var all = document.createElement("button");
+  all.className = "btn" + (curCat === "all" ? " on" : "");
+  all.textContent = lang === "tr" ? "Tümü" : "All";
+  all.onclick = function () { curCat = "all"; render(); };
+  host.appendChild(all);
+  for (var key in CATS) {
+    (function (k) {
+      var b = document.createElement("button");
+      b.className = "btn" + (curCat === k ? " on" : "");
+      b.textContent = pick(CATS[k]);
+      b.onclick = function () { curCat = (curCat === k ? "all" : k); render(); };
+      host.appendChild(b);
+    })(key);
+  }
+  var inp = document.createElement("input");
+  inp.id = "q";
+  inp.type = "search";
+  inp.value = query;
+  inp.placeholder = lang === "tr" ? "Ara… (ör. Manos, drop)" : "Search… (e.g. Manos, drop)";
+  inp.oninput = function () { query = inp.value; renderRows(); };
+  host.appendChild(inp);
+}
+
+function rowMatches(r) {
+  if (r.s !== "all" && r.s !== curSkill) return false;
+  if (curCat !== "all" && r.c !== curCat) return false;
+  if (query) {
+    var q = query.toLowerCase();
+    var hay = (r.n + " " + r.e + " " + pick(CATS[r.c])).toLowerCase();
+    if (hay.indexOf(q) < 0) return false;
+  }
+  return true;
+}
+
+function renderRows() {
+  var tb = document.getElementById("rows");
+  var html = "";
+  var count = 0;
+  for (var i = 0; i < DATA.length; i++) {
+    var r = DATA[i];
+    if (!rowMatches(r)) continue;
+    count++;
+    var genTag = r.s === "all"
+      ? '<span class="tag gen">' + (lang === "tr" ? "Genel" : "General") + "</span>"
+      : "";
+    html += "<tr><td>" + nameCell(r) + "</td>"
+         +  '<td>' + genTag + '<span class="tag">' + esc(pick(CATS[r.c])) + "</span></td>"
+         +  "<td>" + esc(pick(r.e)) + "</td>"
+         +  '<td class="num">' + esc(pick(r.d)) + "</td></tr>";
+  }
+  if (!count) {
+    html = '<tr><td colspan="4" class="empty">' + (lang === "tr" ? "Sonuç yok." : "No results.") + "</td></tr>";
+  }
+  tb.innerHTML = html;
+}
+
+function render() {
+  applyStatic();
+  renderTabs();
+  var isStack = curSkill === "stack";
+  document.getElementById("stack").style.display = isStack ? "" : "none";
+  document.getElementById("ref-panel").style.display = isStack ? "none" : "";
+  if (!isStack) {
+    renderCats();
+    document.getElementById("skillnote").textContent = pick(NOTES[curSkill] || "");
+    renderRows();
+  }
+}
+
+function setLang(l) {
+  lang = l;
+  try { localStorage.setItem(LANG_KEY, l); } catch (e) {}
+  render();
+}
+document.getElementById("lang-tr").addEventListener("click", function () { setLang("tr"); });
+document.getElementById("lang-en").addEventListener("click", function () { setLang("en"); });
+
+render();
+</script>
+</body>
+</html>
