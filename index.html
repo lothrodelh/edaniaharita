@@ -438,9 +438,26 @@ const STORE='bdo_tachyon_done_tr';
 const keyOf=p=>`${p.kind}-${p.num}`;
 // v1 anahtar taşıma / migrate old v1 keys
 const migrate=k=>k.replace(/^Miras-/, 'relic-').replace(/^İz-/, 'trace-').replace(/^Bilgi-/, 'klore-');
-let DONE=new Set();
-try{DONE=new Set((JSON.parse(localStorage.getItem(STORE)||'[]')).map(migrate));}catch(e){}
-const saveDone=()=>{try{localStorage.setItem(STORE,JSON.stringify([...DONE]));}catch(e){}};
+// Üçlü kalıcılık: localStorage + çerez + IndexedDB (biri silinirse diğerinden kurtar)
+// Triple persistence: localStorage + cookie + IndexedDB (recover if one store is wiped)
+function _readLS(){try{return JSON.parse(localStorage.getItem(STORE)||'[]');}catch(e){return[];}}
+function _readCookie(){try{const m=document.cookie.match('(?:^|; )'+STORE+'=([^;]*)');return m?decodeURIComponent(m[1]).split(',').filter(Boolean):[];}catch(e){return[];}}
+function _writeCookie(arr){try{document.cookie=STORE+'='+encodeURIComponent(arr.join(','))+'; path=/; max-age='+(3600*24*365*2)+'; SameSite=Lax';}catch(e){}}
+let _idb=null;
+try{const rq=indexedDB.open('bdo_tachyon',1);
+  rq.onupgradeneeded=()=>{rq.result.createObjectStore('kv');};
+  rq.onsuccess=()=>{_idb=rq.result;
+    try{const tx=_idb.transaction('kv','readonly').objectStore('kv').get(STORE);
+      tx.onsuccess=()=>{if(Array.isArray(tx.result)){let added=false;
+        for(const k of tx.result.map(migrate))if(!DONE.has(k)){DONE.add(k);added=true;}
+        if(added){saveDone();progress();draw();}}};}catch(e){}};
+}catch(e){}
+let DONE=new Set([..._readLS(),..._readCookie()].map(migrate));
+const saveDone=()=>{const arr=[...DONE];
+  try{localStorage.setItem(STORE,JSON.stringify(arr));}catch(e){}
+  _writeCookie(arr);
+  try{if(_idb)_idb.transaction('kv','readwrite').objectStore('kv').put(arr,STORE);}catch(e){}};
+if(DONE.size)saveDone(); // açılışta tüm depoları eşitle / sync all stores on load
 const isDone=p=>p.kind&&DONE.has(keyOf(p));
 let hideFound=false;
 try{hideFound=localStorage.getItem('bdo_tachyon_hidefound')==='1';}catch(e){}
